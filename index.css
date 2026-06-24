@@ -1,0 +1,734 @@
+/* =========================================================================
+   [CSS-100] VARIABEL WARNA & TEMA PREMIUM (LIGHT THEME - HIGH CONTRAST)
+   ========================================================================= */
+:root {
+  /* Premium Light Theme Palette (Sleek, High Contrast, Clean Slate) */
+  --bg-utama: #e6f3fa;          /* Faint Blue / Clean White */
+  --bg-kartu: rgba(240, 249, 255, 0.90); /* Dasar Biru Terang Tipis (Glassmorphism) */
+  --border-kaca: rgba(14, 165, 233, 0.18); /* Subtle Blue Border */
+  --text-utama: #0f172a;        /* Deep Slate (Excellent Contrast) */
+  --text-sekunder: #475569;     /* Slate Gray for secondary text */
+  --menu-bg: #091124;           /* Deep Dark Blue for Sidebar (Professional contrast) */
+  --menu-text: #94a3b8;         /* Light Gray for sidebar menu text */
+  --menu-active: #7c3aed;       /* Vibrant Purple Font for active menu */
+  --menu-hover-bg: #1e3a8a;     /* Vibrant Blue for Hover Background */
+  
+  --neon-blue: #0284c7;
+  --neon-green: #059669;
+  --neon-red: #dc2626;
+  --neon-yellow: #d97706;
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* =========================================================================
+   [CSS-150] RESPONSIVE FONT SCALING (Untuk Layar 14" s.d 32")
+   ========================================================================= */
+html {
+  font-size: 15.5px;
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 1600px) {
+  html {
+    font-size: 16.5px; /* Lebih besar di monitor 32" untuk tampilan optimal */
+  }
+}
+
+@media (max-width: 1440px) {
+  html {
+    font-size: 13px; /* Otomatis mengecilkan seluruh layout pada laptop 14" */
+  }
+}
+
+@media (max-width: 1200px) {
+  html {
+    font-size: 11.5px; /* Menyesuaikan pada layar yang lebih kecil */
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Reset font size dasar untuk kenyamanan mobile */
+  }
+}
+
+/* Global Reset & Base Styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-utama);
+  color: var(--text-utama);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-utama);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================================
+   [CSS-200] SCREEN UTAMA: SCREEN LOGIN (Premium Light UI)
+   ========================================================================= */
+#loginScreen {
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent),
+              radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.08), transparent),
+              #e2e8f0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-kaca);
+  border-top: 4px solid #4f46e5;
+  padding: 45px 35px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  width: 100%;
+  max-width: 420px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.12);
+}
+
+.login-card img {
+  max-width: 130px;
+  height: auto;
+  margin-bottom: 25px;
+}
+
+.login-card h5 {
+  color: var(--text-utama);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Inputs & Forms (Premium Light Mode) */
+.form-control, .form-select {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: var(--text-utama) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.95rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  background-color: #ffffff !important;
+}
+
+.form-control::placeholder {
+  color: #94a3b8 !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 12px 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.25s ease !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.4) !important;
+  filter: brightness(1.05);
+}
+
+/* =========================================================================
+   [CSS-300] LAYOUT UTAMA: SIDEBAR (Dark Blue) & MAIN AREA
+   ========================================================================= */
+.sidebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 15%), 
+              linear-gradient(145deg, #091124 0%, #1e3a8a 100%);
+  min-height: 100vh;
+  border-right: 1px solid var(--border-kaca);
+  padding: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+}
+
+/* Logo Dasar Putih dengan Gradasi Biru Tipis */
+.sidebar .logo-area {
+  background: linear-gradient(180deg, #ffffff 0%, #e6f3fa 100%); 
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.25rem;
+}
+
+.sidebar .logo-area img {
+  max-width: 65%;
+  height: auto;
+  margin-bottom: 0.5rem;
+  filter: none; /* Logo looks completely clean and original */
+}
+
+.sidebar h6 {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #0f172a; /* Dark Slate to contrast logo background */
+}
+
+.sidebar a.nav-link {
+  color: rgba(255, 255, 255, 0.9) !important; /* Teks Putih */
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  margin: 0.25rem 0.75rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sidebar a.nav-link i {
+  margin-right: 0.6rem;
+  font-size: 0.95rem;
+  width: 1.4rem;
+  text-align: center;
+  transition: color 0.25s ease;
+}
+
+/* Efek Animasi Biru pada Hover */
+.sidebar a.nav-link:hover {
+  background-color: rgba(255,255,255, 0.1) !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+  transform: translateX(4px);
+}
+
+/* Aktif Menu Warna Biru Gradasi */
+.sidebar a.nav-link.active {
+  background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35) !important;
+  border-radius: 8px !important;
+}
+
+.sidebar a.nav-link.active i {
+  color: #ffffff !important;
+}
+
+/* Main Area Adjustment for Fixed Sidebar */
+.main-content {
+  margin-left: 16.666667%; /* matches col-md-2 */
+  padding: 2.2rem;
+  min-height: 100vh;
+  background-color: var(--bg-utama);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    min-height: auto;
+    width: 100%;
+  }
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
+
+/* =========================================================================
+   [CSS-400] TOP HEADER & CARD KACA (MENGKILAT / GLOSSY EFFECT)
+   ========================================================================= */
+.top-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-kaca);
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.015);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-header h5 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 1.15rem;
+  color: var(--text-utama);
+}
+
+/* Button Refresh - Sangat Kelihatan & Kontras Tinggi */
+#btnRefresh {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s ease;
+}
+
+#btnRefresh i {
+  color: #ffffff !important;
+}
+
+#btnRefresh:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%) !important;
+  transform: scale(1.03);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+}
+
+#btnRefresh:disabled {
+  background: #1e3a8a !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.card-kaca {
+  background: var(--bg-kartu);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-kaca);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efek Kilatan Kaca (Shiny Reflective Sweep) */
+.card-kaca::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.card-kaca:hover::after {
+  transform: translate(50%, 50%) rotate(45deg);
+}
+
+/* Animasi Pinggir Garis Mengkilat (Shiny Border) untuk Form Input */
+.animated-border-kaca {
+  border: 3px solid transparent !important;
+  background: linear-gradient(var(--bg-kartu), var(--bg-kartu)) padding-box,
+              linear-gradient(60deg, #0ea5e9, #ffffff, #6366f1, #ffffff, #0ea5e9) border-box !important;
+  background-size: 300% 100% !important;
+  animation: shineBorder 4s linear infinite;
+  border-radius: 16px;
+}
+
+@keyframes shineBorder {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Ensure text is clearly visible on the light blue background */
+.animated-border-kaca h4,
+.animated-border-kaca h5,
+.animated-border-kaca h6,
+.animated-border-kaca .text-muted,
+.animated-border-kaca label {
+  color: var(--text-utama) !important;
+}
+
+.animated-border-kaca .text-muted {
+  color: var(--text-sekunder) !important;
+}
+
+.card-mini {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-mini:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+.card-mini span, .card-mini i {
+  color: var(--text-sekunder) !important;
+}
+.card-mini h3 {
+  font-weight: 800;
+  margin-top: 5px;
+}
+
+/* =========================================================================
+   [CSS-500] TABEL MODERN & BADGES (HIGH CONTRAST & RESPONSIVE FIT)
+   ========================================================================= */
+.table {
+  color: var(--text-utama) !important;
+  margin-bottom: 0 !important;
+}
+
+.table th {
+  background-color: #0f172a !important; /* Deep Slate / Dark Blue Header */
+  color: #ffffff !important;             /* White text */
+  border-bottom: 2px solid #1e293b !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.65rem 0.5rem !important;
+}
+
+.table td {
+  background-color: transparent !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0.65rem 0.5rem !important;
+  font-size: 0.82rem;
+  color: #1e293b;
+}
+
+/* Hover and alternate rows */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(15, 23, 42, 0.01) !important;
+}
+
+.table-hover tbody tr:hover td {
+  background-color: #f1f5f9 !important;
+  color: var(--text-utama) !important;
+}
+
+/* Media Query overrides for table responsiveness on smaller screens */
+@media (max-width: 1400px) {
+  .table th {
+    font-size: 0.76rem;
+    padding: 0.5rem 0.4rem !important;
+  }
+  .table td {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.4rem !important;
+  }
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(15, 23, 42, 0.015) !important;
+}
+
+.table-hover tbody tr:hover td {
+  background-color: #f1f5f9 !important;
+  color: var(--text-utama) !important;
+}
+
+/* Badges & Glowing Statuses (Improved for Light Background) */
+.badge {
+  padding: 6px 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+.badge-glow-success {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-glow-danger {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border: 1px solid #fecdd3;
+}
+
+.badge-glow-warning {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a;
+}
+
+.badge-glow-info {
+  background-color: #e0f2fe !important;
+  color: #075985 !important;
+  border: 1px solid #bae6fd;
+}
+
+/* =========================================================================
+   [CSS-600] SEKSI KONTEN & ANIMASI
+   ========================================================================= */
+  /* =========================================================================
+     [UI-400] ANIMASI DAN TRANSISI
+     ========================================================================= */
+  .content-section {
+    display: none;
+    animation: slideFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .content-section.active {
+    display: block;
+  }
+
+  @keyframes slideFadeIn {
+    0% { opacity: 0; transform: translateY(15px) scale(0.99); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  
+  /* Badge animasi denyut untuk notifikasi */
+  @keyframes pulseBadge {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+  }
+  
+  #badgeOrder {
+    animation: pulseBadge 2s infinite;
+  }
+
+/* Navigation Tabs (Dashboard sub-tabs) */
+.nav-pills {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 4px !important;
+}
+
+.nav-pills .nav-link {
+  color: #475569 !important;
+  border-radius: 8px !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: #1e3a8a !important;
+  background-color: rgba(30, 58, 138, 0.05);
+}
+
+.nav-pills .nav-link.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  font-weight: 700;
+}
+
+/* DataTables Styling Overrides */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  background: transparent !important;
+  border: 1px solid #cbd5e1 !important;
+  color: var(--text-sekunder) !important;
+  border-radius: 6px !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.dataTables_wrapper .dataTables_filter input {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: var(--text-utama) !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+}
+
+/* =========================================================================
+   [UI-500] TABEL LEBIH RAPAT & ZEBRA STRIPING
+   ========================================================================= */
+.table {
+  font-size: 0.85rem !important; /* Menurunkan font 1 tingkat lebih kecil */
+}
+
+.table th, .table td {
+  padding: 0.25rem 0.4rem !important; /* Membuat sel tabel sangat rapat/kecil */
+  vertical-align: middle;
+}
+
+/* Baris ganjil: putih */
+.table tbody tr:nth-child(odd) {
+  background-color: #ffffff !important; 
+}
+
+/* Baris genap: abu-abu terang tipis */
+.table tbody tr:nth-child(even) {
+  background-color: rgba(241, 245, 249, 0.95) !important; 
+}
+
+/* =========================================================================
+   [UI-600] FORM INPUT LEBIH KECIL / RAPAT
+   ========================================================================= */
+.form-control, .form-select {
+  padding: 0.3rem 0.5rem !important; /* Kurangi ketebalan kotak isian */
+  font-size: 0.85rem !important;     /* Sesuaikan besar teks ketikan di dalam kotak */
+  min-height: 32px !important;       /* Batasi tinggi minimum kotak */
+  border-radius: 6px !important;
+}
+
+.form-label {
+  font-size: 0.8rem !important;      /* Label judul di atas kotak diperkecil */
+  margin-bottom: 0.2rem !important;  /* Jarak label ke kotak lebih dirapatkan */
+  font-weight: 600;
+}
+
+/* =========================================================================
+   [UI-700] TIPOGRAFI ENTERPRISE (SF PRO / MAC STYLE) & SKALA PRESISI
+   ========================================================================= */
+
+/* 1. Gunakan Font San Francisco (Mac/iOS) sebagai prioritas mutlak */
+body, .table, .btn, .nav-link, .card, h1, h2, h3, h4, h5, h6, input, select {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "San Francisco", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+/* 2. Warna Sidebar menjadi Biru Gelap Solid */
+#sidebar {
+  background: #0f172a !important; /* Warna Solid Navy Blue mewah */
+  border-right: none !important;
+}
+
+/* 3. Label Navigasi & Sidebar: 13px, Medium */
+.nav-link {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #cbd5e1 !important; /* Teks agak terang agar terbaca di biru gelap */
+}
+.nav-link.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%) !important; /* Gradasi biru cerah tipis ke pekat */
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35) !important; /* Efek cahaya biru memancar */
+  border-radius: 8px !important; /* Mempermanis lengkungan kotak menu */
+}
+
+/* 4. Data Angka & Isi Tabel: 13px, Regular, Line Height 145% */
+.table td {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  color: #334155 !important;
+}
+
+/* 5. Header / Judul Kolom Tabel: 12px, Semi-Bold, Sedikit Redup */
+.table th {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: rgba(241, 245, 249, 0.8) !important; /* Abu-abu estetik */
+}
+
+/* 6. Nilai Utama / KPI (Angka Besar di Dashboard): 24px, Bold */
+.card-mini h3 {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px;
+}
+
+/* 7. Judul Panel / Kartu Data: 15px, Semi-Bold */
+.card-kaca h6, .modal-title, .card-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.2px;
+}
+
+/* 8. Rataan Tabel: Kiri untuk teks, Kanan untuk angka (Menggunakan selector spesifik atau default) */
+.table td, .table th {
+  text-align: left !important; /* Default rata kiri untuk teks (nama barang/cabang) */
+}
+/* Untuk memastikan angka (qty/jumlah) rata kanan, kita akan pakai text-end di index.html, atau secara pintar menargetkan kolom terakhir */
+.table td:last-child {
+  /* text-align: center !important; */ /* Seringkali kolom terakhir adalah status (badge), lebih bagus di tengah */
+}
+
+/* =========================================================================
+   [UI-800] MAC-STYLE SEGMENTED CONTROLS & HEADER
+   ========================================================================= */
+
+/* Top Header - Mac Glassy Blue */
+.top-header {
+  background: linear-gradient(135deg, rgba(224, 242, 254, 0.85) 0%, rgba(186, 230, 253, 0.85) 100%) !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.5) !important;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.05) !important;
+}
+
+.top-header h5 {
+  color: #0c4a6e !important; /* Biru pekat dongker */
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+
+/* Mac-Style Segmented Control (Tabs) */
+.nav-pills {
+  background-color: rgba(226, 232, 240, 0.6) !important; /* Latar abu-abu kaca */
+  padding: 4px;
+  border-radius: 12px;
+  display: inline-flex;
+}
+
+.nav-pills .nav-item {
+  margin: 0 !important;
+}
+
+.nav-pills .nav-link {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+  transition: all 0.2s ease-in-out;
+  background: transparent !important;
+  border: none !important;
+}
+
+.nav-pills .nav-link:hover {
+  color: #0f172a !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.nav-pills .nav-link.active {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  transform: scale(1.02);
+}

@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klinik Maxima Logbook & Logistik</title>
+  
+  <!-- CSS Library -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Custom Style -->
+  <link rel="stylesheet" href="index.css?v=2.3">
+</head>
+<body>
+
+  <!-- =========================================================================
+       [TAMPILAN-100] TAMPILAN LOGIN (SCREEN LOGIN)
+       ========================================================================= -->
+  <div id="loginScreen">
+    <div class="login-card text-center">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMfSVyTlloricuFQOdd6T5HG3AEWHhQ4tYrxdPKt2SKEYY7yWllpNZ32GBvYNet-WrnFUlrCGuWV4ZYL351Krpgg9RF5E56ihSiQugYez4N0gtbnSG8WUWlIfCpJleWjTy1zlwyHgNIg32dE1q-Kd1hfOiZFgFSJc6NQHjL_0w6bCSqH0umqrHtN_jxoYR/s433/logo_maxima-removebg-preview.png" alt="Logo Maxima">
+      <h5 class="fw-bold mb-4">Login Radiologi Maxima</h5>
+      <form id="formLogin" onsubmit="prosesLogin(event)">
+        <div class="mb-3 text-start">
+          <label class="form-label fw-bold text-secondary">Username</label>
+          <input type="text" class="form-control" id="loginUser" required placeholder="Masukkan username">
+        </div>
+        <div class="mb-4 text-start">
+          <label class="form-label fw-bold text-secondary">Password</label>
+          <input type="password" class="form-control" id="loginPass" required placeholder="Masukkan password">
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-bold" id="btnLoginBtn">Masuk <i class="fa-solid fa-arrow-right ms-2"></i></button>
+        <div id="loginAlert" class="alert alert-danger mt-3" style="display:none; font-size: 0.85rem;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       [TAMPILAN-200] TAMPILAN UTAMA APLIKASI (MAIN APP)
+       ========================================================================= -->
+  <div id="mainApp" style="display: none;">
+    <div class="container-fluid">
+      <div class="row">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <div class="col-md-2 sidebar d-none d-md-block px-0">
+          <div class="logo-area">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMfSVyTlloricuFQOdd6T5HG3AEWHhQ4tYrxdPKt2SKEYY7yWllpNZ32GBvYNet-WrnFUlrCGuWV4ZYL351Krpgg9RF5E56ihSiQugYez4N0gtbnSG8WUWlIfCpJleWjTy1zlwyHgNIg32dE1q-Kd1hfOiZFgFSJc6NQHjL_0w6bCSqH0umqrHtN_jxoYR/s433/logo_maxima-removebg-preview.png" alt="Logo Maxima">
+            <h6 class="mb-0 text-uppercase">Radiologi Maxima</h6>
+          </div>
+          
+          <div class="nav flex-column" id="menuSidebar">
+            <a class="nav-link active" id="menuDashboard" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a class="nav-link" id="menuHarian" onclick="switchTab('harian-film', this); panggilJikaBelum('harian', function(){ loadHarianData(); })"><i class="fa-solid fa-calendar-day"></i> Input Harian & Rijek</a>
+            <a class="nav-link" id="menuStok" onclick="switchTab('stok-film', this); panggilJikaBelum('stok', function(){ loadStokData(); })"><i class="fa-solid fa-clipboard-check"></i> Opname Stok Bulanan</a>
+            <a class="nav-link" id="menuLogbook" onclick="switchTab('logbook-pasien', this); panggilJikaBelum('logbook', function(){ loadLogbookPasienData(); })"><i class="fa-solid fa-users"></i> Logbook Pasien</a>
+            <a class="nav-link" id="menuOrder" onclick="switchTab('order-barang', this); panggilJikaBelum('order', function(){ loadOrderData(); })"><i class="fa-solid fa-cart-plus"></i> Order Logistik</a>
+            <a class="nav-link" id="menuServis" onclick="switchTab('lapor-servis', this); panggilJikaBelum('servis', function(){ loadServisData(); })"><i class="fa-solid fa-wrench"></i> Laporan Servis Alat</a>
+            <a class="nav-link" id="menuInventori" onclick="switchTab('inventori-alat', this); panggilJikaBelum('inventori', function(){ loadInventoriData(); })"><i class="fa-solid fa-boxes-stacked"></i> Inventori Alat</a>
+            <a class="nav-link" id="menuTLD" onclick="switchTab('evaluasi-tld', this); panggilJikaBelum('tld', function(){ loadTldData(); })"><i class="fa-solid fa-radiation"></i> Evaluasi TLD</a>
+            <a class="nav-link" id="menuMCU" onclick="switchTab('mcu-petugas', this); panggilJikaBelum('mcu', function(){ loadMcuData(); })"><i class="fa-solid fa-heart-pulse"></i> MCU Petugas</a>
+            <a class="nav-link" id="menuLogbookManual" href="#" onclick="bukaLogbookManualCabang()"><i class="fa-solid fa-book-medical"></i> Logbook Manual</a>
+            <a class="nav-link" id="menuPengiriman" onclick="switchTab('status-pengiriman', this); panggilJikaBelum('pengiriman', function(){ muatHistoriPengiriman(); })"><i class="fa-solid fa-truck-fast"></i> Tracking Pengiriman</a>
+            <a class="nav-link" id="menuSIP" onclick="switchTab('data-sip', this); panggilJikaBelum('sip', function(){ muatDataSIP(); })"><i class="fa-solid fa-id-card-clip"></i> Data SIP/SIKR</a>
+            <a class="nav-link" id="menuSOP" href="#" onclick="bukaSOPCabang()"><i class="fa-solid fa-file-pdf"></i> SOP & Dokumen</a>
+            <a class="nav-link" id="menuAlatMCU" style="display: none;" onclick="switchTab('peralatan-mcu', this); panggilJikaBelum('alatMcu', function(){ loadPeralatanMCU(); })"><i class="fa-solid fa-microscope"></i> Pantau Alat MCU</a>
+          </div>
+        </div>
+
+        <!-- MAIN AREA KONTEN -->
+        <div class="col-md-10 main-content">
+          
+          <!-- TOP HEADER AREA -->
+          <div class="top-header">
+            <h5 class="mb-0">Sistem Pengelolaan Inventori & Logistik</h5>
+            <div class="d-flex align-items-center">
+              <button class="btn btn-sm rounded-pill shadow-sm d-flex align-items-center justify-content-center me-3" onclick="refreshDashboard()" id="btnRefresh">
+                <i class="fa-solid fa-arrows-rotate me-2"></i> Refresh
+              </button>
+              <div id="displayRole" class="fw-bold me-3"><i class="fa-solid fa-user-shield me-1"></i> -</div>
+              <button class="btn btn-sm btn-danger fw-bold shadow-sm px-3" onclick="logout()"><i class="fa-solid fa-power-off me-1"></i> Keluar</button>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 1: EXECUTIVE DASHBOARD
+               ========================================================================= -->
+          <div id="dashboard" class="content-section active">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
+              <h4 class="mb-3 mb-md-0 fw-bold"><i class="fa-solid fa-chart-line text-primary me-2"></i> Executive Dashboard</h4>
+              <div class="input-group w-auto shadow-sm">
+                <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-filter"></i></span>
+                <select class="form-select fw-bold border-secondary text-primary" id="filterDashboard" onchange="updateDashboardView()">
+                  <option value="ALL">🌐 Tampilkan Keseluruhan (Semua Cabang)</option>
+                  <option value="MXM-KDI">📍 MXM-KDI (Kendari - Pusat)</option>
+                  <option value="MXM-MKS">📍 MXM-MKS (Makassar)</option>
+                  <option value="MXM-PLU">📍 MXM-PLU (Palu)</option>
+                  <option value="MXM-GTO">📍 MXM-GTO (Gorontalo)</option>
+                  <option value="MXM-MND">📍 MXM-MND (Manado)</option>
+                  <option value="MXM-LWK">📍 MXM-LWK (Luwuk)</option>
+                  <option value="MXM-BHD">📍 MXM-BHD (Bahodopi)</option>
+                  <option value="MXM-BUB">📍 MXM-BUB (Bau-Bau)</option>
+                  <option value="MXM-BJM">📍 MXM-BJM (Banjarmasin)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- DASHBOARD TABS -->
+            <ul class="nav nav-pills mb-4 align-items-center" id="dashboardTabs" role="tablist">
+              <li class="nav-item">
+                <button class="nav-link active fw-bold" id="tab-ringkasan-btn" data-bs-toggle="pill" data-bs-target="#tab-ringkasan" type="button" role="tab"><i class="fa-solid fa-chart-pie"></i> Ringkasan Utama</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-harian-btn" data-bs-toggle="pill" data-bs-target="#tab-harian-view" type="button" role="tab"><i class="fa-solid fa-calendar-day"></i> Pantauan Harian</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-order-btn" data-bs-toggle="pill" data-bs-target="#tab-order-view" type="button" role="tab"><i class="fa-solid fa-bell"></i> Notifikasi Order <span class="badge bg-danger rounded-pill ms-1" id="badgeOrder">0</span></button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-inventori-btn" data-bs-toggle="pill" data-bs-target="#tab-inventori-view" type="button" role="tab"><i class="fa-solid fa-boxes-stacked"></i> Database Aset</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-perijinan-btn" data-bs-toggle="pill" data-bs-target="#tab-perijinan-view" type="button" role="tab"><i class="fa-solid fa-file-contract"></i> Perizinan X-Ray</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-rekap-logbook-btn" data-bs-toggle="pill" data-bs-target="#tab-rekap-logbook-view" type="button" role="tab"><i class="fa-solid fa-book-medical"></i> Rekap Logbook</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link fw-bold text-warning" id="tab-peta-bi-btn" data-bs-toggle="pill" data-bs-target="#tab-peta-bi-view" type="button" role="tab" onclick="panggilJikaBelum('analyticsBI', function(){ initAnalyticsBI(); })"><i class="fa-solid fa-chart-line"></i> Business Intelligence (BI)</button>
+              </li>
+              <li class="nav-item ms-auto me-2">
+                <a href="https://docs.google.com/spreadsheets/d/12WebcuIkeKunn9bvfcXuOUUOPQV4Awj6Je6eVcmi6Ks/edit?gid=0#gid=0" target="_blank" class="btn btn-sm btn-success fw-bold shadow-sm" id="btnSpreadsheet">
+                  <i class="fa-solid fa-file-excel me-1"></i> Buka Data (Excel)
+                </a>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="dashboardTabsContent">
+              <!-- Sub-tab 1: Ringkasan Utama -->
+              <div class="tab-pane fade show active" id="tab-ringkasan" role="tabpanel">
+                <div class="row mb-4">
+                  <div class="col-md-3 mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('pasien')">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">TOTAL PASIEN (BULAN INI)</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalPasien">0 <span class="fs-6 text-success"><i class="fa-solid fa-user ms-1"></i> Pasien</span></h3>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('film')">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">PEMAKAIAN FILM (LEMBAR)</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalFilm">0 <span class="fs-6 text-danger"><i class="fa-solid fa-film ms-1"></i> Lembar</span></h3>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('order')">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">ORDER BARANG (PENDING)</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalOrder">0 <span class="fs-6 text-muted">Items</span></h3>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('alat')">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">LAPORAN RUSAK ALAT</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalCR">0 <span class="fs-6 text-muted">Cabang</span></h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-8 mb-4">
+                    <div class="card-kaca h-100">
+                      <h6 class="fw-bold mb-4 text-secondary"><i class="fa-solid fa-chart-bar me-2 text-primary"></i> Statistik Pasien & Pemakaian Film (Per Cabang)</h6>
+                      <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="chartPemakaian"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-4">
+                     <div class="card-kaca h-100">
+                      <h6 class="fw-bold mb-4 text-secondary"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Peringatan Stok Terendah</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-hover text-center align-middle" id="tabelStokRendahDash">
+                          <thead>
+                            <tr>
+                              <th>Cabang</th>
+                              <th>Film</th>
+                              <th>Sisa</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr><td colspan="4" class="text-center text-muted">Memuat data stok...</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-tab 2: Pantauan Harian -->
+              <div class="tab-pane fade" id="tab-harian-view" role="tabpanel">
+                <div class="card-kaca">
+                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-calendar-day me-2 text-primary"></i> Data Laporan Harian Terkini (Seluruh Cabang)</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle text-center" id="tabelHarianDash">
+                      <thead>
+                        <tr>
+                          <th>Tanggal</th>
+                          <th>Cabang</th>
+                          <th>Jenis Film</th>
+                          <th>Pasien 1 Lbr</th>
+                          <th>Pasien 2 Lbr</th>
+                          <th>Terpakai</th>
+                          <th>Rijek</th>
+                          <th>Ket. Rijek</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td colspan="8" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-tab 3: Notifikasi Order -->
+              <div class="tab-pane fade" id="tab-order-view" role="tabpanel">
+                <div class="card-kaca">
+                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i> Pengajuan Order Logistik dari Cabang</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle text-center" id="tabelOrderDash">
+                      <thead>
+                        <tr>
+                          <th>Tanggal Order</th>
+                          <th>Cabang Asal</th>
+                          <th>Kategori</th>
+                          <th>Nama Barang / Film</th>
+                          <th>Jumlah Order</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td colspan="6" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-tab 4: Database Aset -->
+              <div class="tab-pane fade" id="tab-inventori-view" role="tabpanel">
+                <div class="card-kaca">
+                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Data Inventori Seluruh Alat Radiologi</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelInventoriDash">
+                      <thead>
+                        <tr>
+                          <th>Cabang</th>
+                          <th>Kategori Aset</th>
+                          <th>Merk / Tipe Barang</th>
+                          <th>Nomor Seri (S/N)</th>
+                          <th>Tahun Pengadaan</th>
+                          <th>Kondisi Alat</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td colspan="6" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-tab 5: Perijinan X-Ray -->
+              <div class="tab-pane fade" id="tab-perijinan-view" role="tabpanel">
+                <div class="card-kaca">
+                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-file-contract me-2 text-primary"></i> Pantauan Status Ijin BAPETEN & UKES Pesawat X-Ray</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelPerijinanDash" style="font-size:0.8rem;">
+                      <thead>
+                        <tr>
+                          <th>Cabang</th>
+                          <th>Nomor KTUN Ijin</th>
+                          <th>Untuk Pesawat</th>
+                          <th>Merk</th>
+                          <th>Tgl Terbit</th>
+                          <th>Exp KTUN</th>
+                          <th>Tgl UKES</th>
+                          <th>Exp UKES</th>
+                          <th>Status</th>
+                          <th>Arsip Izin</th> 
+                        </tr>
+                      </thead>
+                      <tbody id="bodyPerijinan">
+                        <tr><td colspan="10" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-tab 6: Rekap Logbook -->
+              <div class="tab-pane fade" id="tab-rekap-logbook-view" role="tabpanel">
+                <div class="card-kaca">
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-book-medical me-2 text-primary"></i> Rekapitulasi Total Pasien & Ekspose Bulanan</h6>
+                    <div class="input-group w-auto mt-2 mt-md-0 shadow-sm">
+                      <span class="input-group-text bg-dark border-secondary text-success"><i class="fa-solid fa-calendar-days"></i></span>
+                      <input type="month" class="form-control fw-bold border-secondary text-success" id="filterBulanLogbook" onchange="renderTabelLogbook()">
+                      <button class="btn btn-success fw-bold" onclick="document.getElementById('filterBulanLogbook').value=''; renderTabelLogbook();">Semua Bulan</button>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelRekapLogbookDash">
+                      <thead>
+                        <tr>
+                          <th>Bulan Laporan</th>
+                          <th>Cabang</th>
+                          <th>Total Pasien</th>
+                          <th>Total Ekspose Film</th>
+                          <th>Rasio (Ekspose/Pasien)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td colspan="5" class="text-center text-muted py-3">Memuat data logbook...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div> 
+
+              <!-- Sub-tab 7: Business Intelligence -->
+              <div class="tab-pane fade" id="tab-peta-bi-view" role="tabpanel">
+                <div class="d-flex align-items-center mb-4 mt-2 border-bottom border-secondary pb-2">
+                  <h5 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-chess-king me-2 text-warning"></i> Executive Business Intelligence</h5>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6 mb-4">
+                    <div class="card-kaca">
+                      <div class="fw-bold pb-2 mb-3 border-bottom border-secondary text-primary" style="font-size: 1rem;">
+                        <i class="fa-solid fa-chart-pie text-warning me-2"></i> Analisis Pemborosan Film (Waste Cost)
+                      </div>
+                      <div class="card-body d-flex justify-content-center p-0">
+                        <div style="width: 80%;">
+                          <canvas id="biChartEfisiensi"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-4">
+                    <div class="card-kaca">
+                      <div class="fw-bold pb-2 mb-3 border-bottom border-secondary text-primary" style="font-size: 1rem;">
+                        <i class="fa-solid fa-truck-medical text-info me-2"></i> Valuasi Kondisi Aset Nasional
+                      </div>
+                      <div class="card-body d-flex justify-content-center p-0">
+                        <div style="width: 80%;">
+                          <canvas id="biChartAset"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div> 
+            </div> 
+          </div> 
+
+          <!-- =========================================================================
+               TAB 2: INPUT HARIAN & RIJEK
+               ========================================================================= -->
+          <div id="harian-film" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4><i class="fa-solid fa-calendar-day text-primary me-2"></i> Laporan Penggunaan & Rijek Harian</h4>
+              <p class="text-muted">Catat pemakaian film pasien dan film rusak (dalam satuan <strong>Lembar</strong>) setiap akhir *shift*.</p>
+              <hr class="border-secondary">
+              
+              <form id="formHarian" onsubmit="submitHarian(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tanggal Penggunaan</label>
+                    <input type="date" class="form-control" id="tanggalHarian" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Jenis Film</label>
+                    <select class="form-select" id="jenisFilmHarian" required>
+                      <option value="" disabled selected>-- Pilih jenis film --</option>
+                      <option value="8x10">Film 8 x 10" (20 x 25 cm) (1 box = 150 lembar)</option>
+                      <option value="10x14">Film 10 x 14" (26 x 36 cm) (1 box = 150 lembar)</option>
+                      <option value="14x17">Film 14 x 17" (35 x 43 cm) (1 box = 100 lembar)</option>
+                      <option value="E-Film A4">E-Film / Blue Inkjet A4 (1 box = 100 lembar)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-3 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-info"><i class="fa-solid fa-user me-1"></i> Pasien (1 Lembar Film)</label>
+                    <input type="number" class="form-control" id="pasien1Lembar" min="0" placeholder="0" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-info"><i class="fa-solid fa-user-group me-1"></i> Pasien (2 Lembar Film)</label>
+                    <input type="number" class="form-control" id="pasien2Lembar" min="0" placeholder="0" required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-success">Terpakai Normal (Lembar)</label>
+                    <input type="number" class="form-control" id="terpakaiNormal" min="0" placeholder="0" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-danger">Rijek / Rusak (Lembar)</label>
+                    <input type="number" class="form-control" id="rijekRusak" min="0" placeholder="0" required>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Keterangan Rijek (Wajib diisi jika ada film rusak)</label>
+                  <textarea class="form-control" id="keteranganRijek" rows="2" placeholder="Contoh: Underexpose, film terlipat, nyangkut di printer..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitHarian">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Simpan Laporan Harian
+                </button>
+                <div id="notifHarian" class="mt-3" style="display:none;"></div>
+              </form>
+
+              <hr class="mt-5 mb-4 border-secondary border-2">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Laporan Harian Terakhir</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniHarian">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Cabang</th>
+                      <th>Jenis Film</th>
+                      <th>Pasien (1 L)</th>
+                      <th>Pasien (2 L)</th>
+                      <th>Terpakai</th>
+                      <th>Rijek</th>
+                      <th>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="8" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 3: OPNAME STOK BULANAN
+               ========================================================================= -->
+          <div id="stok-film" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4><i class="fa-solid fa-clipboard-check text-info me-2"></i> Update Mutasi Stok Gudang</h4>
+              <p class="text-muted">Gunakan menu ini setiap kali <strong>Lapor Tutup Buku (Tanggal 30/31)</strong> atau saat <strong>Barang Baru Tiba</strong>.</p>
+              <hr class="border-secondary">
+              
+              <form id="formStok" onsubmit="submitStok(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tanggal Update</label>
+                    <input type="date" class="form-control" id="tanggalUpdateStok" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Jenis Film</label>
+                    <select class="form-select" id="jenisFilmStok" required>
+                      <option value="" disabled selected>-- Pilih jenis film --</option>
+                      <option value="8x10">Film 8 x 10" (20 x 25 cm) (1 box = 150 lembar)</option>
+                      <option value="10x14">Film 10 x 14" (26 x 36 cm) (1 box = 150 lembar)</option>
+                      <option value="14x17">Film 14 x 17" (35 x 43 cm) (1 box = 100 lembar)</option>
+                      <option value="E-Film A4">E-Film / Blue Inkjet A4 (1 box = 100 lembar)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-success">Film Datang / Masuk (Lembar)</label>
+                    <input type="number" class="form-control" id="filmMasuk" min="0" placeholder="0" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-primary">Total Stok Riil Saat Ini (Lembar)</label>
+                    <input type="number" class="form-control" id="stokTerkini" min="0" placeholder="Hitung fisik di laci sekarang" required>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitStok">
+                  <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data Opname (Kalkulasi Otomatis)
+                </button>
+                <div id="notifStok" class="mt-3" style="display:none;"></div>
+              </form>
+
+              <hr class="mt-5 mb-4 border-secondary border-2">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Mutasi Stok Terakhir (Otomatis)</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniStok">
+                  <thead>
+                    <tr>
+                      <th>Tanggal Update</th>
+                      <th>Cabang</th>
+                      <th>Jenis Film</th>
+                      <th>Stok Awal</th>
+                      <th>Film Masuk</th>
+                      <th>Stok Akhir</th>
+                      <th>Film Terpakai</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 4: LOGBOOK PASIEN (REKAP BULANAN)
+               ========================================================================= -->
+          <div id="logbook-pasien" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4><i class="fa-solid fa-users text-primary me-2"></i> Logbook Pasien Bulanan (Rekapitulasi)</h4>
+              <p class="text-muted">Masukkan total akumulasi pemeriksaan dan total ekspose seluruh pasien dalam periode satu bulan.</p>
+              <hr class="border-secondary">
+              
+              <form id="formPasien" onsubmit="submitPasien(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Bulan Laporan</label>
+                    <input type="month" class="form-control" id="bulanPasien" required>
+                  </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                  <table class="table table-bordered table-hover text-center align-middle">
+                    <thead>
+                      <tr>
+                        <th style="width: 40%;">Jenis Pemeriksaan</th>
+                        <th style="width: 30%;">Jumlah Pasien / Bulan</th>
+                        <th style="width: 30%;">Total Ekspose / Bulan</th>
+                      </tr>
+                    </thead>
+                    <tbody id="bodyLogbookPasien">
+                      <tr>
+                        <td class="text-start fw-bold text-dark">Thoraks</td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                      </tr>
+                      <tr>
+                        <td class="text-start fw-bold text-dark">Musculo</td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                      </tr>
+                      <tr>
+                        <td class="text-start fw-bold text-dark">Dental</td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                      </tr>
+                      <tr>
+                        <td class="text-start fw-bold text-dark">Panoramic</td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                      </tr>
+                      <tr>
+                        <td class="text-start fw-bold text-dark">CT Scan</td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                        <td><input type="number" class="form-control form-control-sm" min="0" placeholder="0" required></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitPasien">
+                  <i class="fa-solid fa-save me-1"></i> Simpan Data Rekap Bulanan
+                </button>
+                <div id="notifPasien" class="mt-3" style="display:none;"></div>
+              </form>
+
+              <hr class="mt-5 mb-4 border-secondary border-2">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Input Logbook Pasien (Pasien / Ekspose)</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelMiniLogbookPasien">
+                  <thead>
+                    <tr>
+                      <th>Bulan Laporan</th>
+                      <th>Cabang</th>
+                      <th>Thoraks (P/E)</th>
+                      <th>Musculo (P/E)</th>
+                      <th>Dental (P/E)</th>
+                      <th>Panoramic (P/E)</th>
+                      <th>CT Scan (P/E)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 5: ORDER LOGISTIK
+               ========================================================================= -->
+          <div id="order-barang" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4><i class="fa-solid fa-cart-plus text-primary me-2"></i> Pengajuan Order Logistik Radiologi</h4>
+              <hr class="border-secondary">
+              
+              <form id="formOrder" onsubmit="submitOrder(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tanggal Order</label>
+                    <input type="date" class="form-control" id="tanggalOrder" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Kategori Barang</label>
+                    <select class="form-select" id="kategoriOrder" onchange="toggleNamaBarang()" required>
+                      <option value="" disabled selected>-- Pilih Kategori --</option>
+                      <option value="Film">Film Fuji / E-Film</option>
+                      <option value="Tinta">Tinta Printer Epson</option>
+                      <option value="Aksesoris">Plastik Dental, Kaset, dll</option>
+                      <option value="Alat">Alat Radiologi (Apron, Grid, dll)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2" id="wadahNamaBarang">
+                    <label class="form-label fw-bold">Nama Barang</label>
+                    <input type="text" class="form-control" id="namaBarangText" placeholder="Contoh: Tinta Cyan L3110" required>
+                    <select class="form-select d-none" id="namaBarangSelect">
+                      <option value="" disabled selected>-- Pilih jenis film --</option>
+                      <option value="8x10">Film 8 x 10" (20 x 25 cm) (1 box = 150 lembar)</option>
+                      <option value="10x14">Film 10 x 14" (26 x 36 cm) (1 box = 150 lembar)</option>
+                      <option value="14x17">Film 14 x 17" (35 x 43 cm) (1 box = 100 lembar)</option>
+                      <option value="E-Film A4">E-Film / Blue Inkjet A4 (1 box = 100 lembar)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-3 mb-2">
+                    <label class="form-label fw-bold text-primary">Jumlah</label>
+                    <input type="number" class="form-control" id="jumlahOrder" min="1" placeholder="0" required>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <label class="form-label fw-bold">Satuan</label>
+                    <select class="form-select" id="satuanOrder" required>
+                      <option value="Box">Box / Dos</option>
+                      <option value="Botol">Botol</option>
+                      <option value="Pcs">Pcs / Unit</option>
+                      <option value="Pack">Pack</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Keterangan Tambahan / Urgensi</label>
+                  <textarea class="form-control" id="keteranganOrder" rows="2" placeholder="Contoh: Stok menipis, sisa 1 box."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitOrder">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Kirim Pengajuan Order
+                </button>
+                <div id="notifOrder" class="mt-3" style="display:none;"></div>
+              </form>
+
+              <hr class="mt-5 mb-4 border-secondary border-2">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pengajuan Order Barang</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniOrder">
+                  <thead>
+                    <tr>
+                      <th>Tanggal Order</th>
+                      <th>Cabang</th>
+                      <th>Kategori</th>
+                      <th>Nama Barang</th>
+                      <th>Jumlah</th>
+                      <th>Status</th>
+                      <th>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 6: LAPORAN SERVIS ALAT
+               ========================================================================= -->
+          <div id="lapor-servis" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4><i class="fa-solid fa-wrench text-danger me-2"></i> Tiket Laporan Servis & Maintenance</h4>
+              <hr class="border-secondary">
+              
+              <form id="formServis" onsubmit="submitServis(event)">
+                <div class="row mb-3">
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Tanggal Lapor</label>
+                    <input type="date" class="form-control" id="tanggalLaporServis" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Kategori Alat</label>
+                     <select class="form-select" id="kategoriAlatServis" required>
+                      <option value="" disabled selected>-- Pilih Jenis --</option>
+                      <option value="Mesin Pesawat X-Ray">Mesin Pesawat X-Ray</option>
+                      <option value="CR Reader">CR / Cassette Reader</option>
+                      <option value="Printer Film">Printer / Dryview</option>
+                      <option value="Komputer IT">Komputer / Laptop</option>
+                      <option value="Lainnya">Alat Lainnya</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">ID / Nomor Seri Alat</label>
+                    <input type="text" class="form-control" id="idAlatServis" placeholder="Contoh: Fuji Prima T2" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-danger">Detail Kerusakan / Gejala</label>
+                  <textarea class="form-control" id="detailKerusakan" rows="3" placeholder="Contoh: Error 10041" required></textarea>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Tingkat Urgensi</label>
+                   <select class="form-select" id="urgensiServis" required>
+                    <option value="" disabled selected>-- Pilih Urgensi --</option>
+                    <option value="Biasa">Biasa (Kendala minor)</option>
+                    <option value="Mendesak" class="text-danger fw-bold">Mendesak (Mati Total)</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold bg-danger border-0" id="btnSubmitServis">
+                  <i class="fa-solid fa-triangle-exclamation me-1"></i> Kirim Tiket Servis
+                </button>
+                <div id="notifServis" class="mt-3" style="display:none;"></div>
+              </form>
+
+              <hr class="mt-5 mb-4 border-secondary border-2">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Tiket Kerusakan Alat</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniServis">
+                  <thead>
+                    <tr>
+                      <th>Tanggal Lapor</th>
+                      <th>Cabang</th>
+                      <th>Nama/ID Alat</th>
+                      <th>Gejala Kerusakan</th>
+                      <th>Urgensi</th>
+                      <th>Status Servis</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 7: INVENTORI ALAT
+               ========================================================================= -->
+          <div id="inventori-alat" class="content-section">
+            <div class="card-kaca animated-border-kaca mb-4">
+              <h4><i class="fa-solid fa-boxes-stacked text-primary me-2"></i> Tambah Aset Baru</h4>
+              <hr class="border-secondary">
+              
+              <form id="formInventori" onsubmit="submitInventori(event)">
+                <div class="row mb-3">
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Kategori Aset</label>
+                    <select class="form-select" id="kategoriAset" required>
+                      <option value="" disabled selected>-- Pilih Kategori --</option>
+                      <option value="Mesin X-Ray">Mesin X-Ray</option>
+                      <option value="CR Reader">CR Reader</option>
+                      <option value="Proteksi">Alat Proteksi</option>
+                      <option value="Aksesoris">Aksesoris</option>
+                      <option value="IT">IT (Laptop, PC)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Merk / Tipe Barang</label>
+                    <input type="text" class="form-control" id="merkAset" placeholder="Contoh: Epson L3110" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Nomor Seri (S/N)</label>
+                    <input type="text" class="form-control" id="snAset" placeholder="Masukkan nomor seri" required>
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tahun Pengadaan</label>
+                    <input type="number" class="form-control" id="tahunAset" min="2000" max="2100" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Kondisi Saat Ini</label>
+                    <select class="form-select" id="kondisiAset" required>
+                      <option value="Baik" class="text-success">Baik (Dapat digunakan penuh)</option>
+                      <option value="Rusak Ringan" class="text-warning">Rusak Ringan (Ada kendala kecil)</option>
+                      <option value="Rusak Berat" class="text-danger">Rusak Berat (Mati total)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitInventori">
+                  <i class="fa-solid fa-save me-1"></i> Simpan Aset Baru ke Database
+                </button>
+                <div id="notifInventori" class="mt-3" style="display:none;"></div>
+              </form>
+            </div>
+
+            <div class="card-kaca">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Daftar Inventori Aset Radiologi Terdaftar</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniInventori">
+                  <thead>
+                    <tr>
+                      <th>Kategori Aset</th>
+                      <th>Cabang</th>
+                      <th>Merk / Tipe</th>
+                      <th>Nomor Seri (S/N)</th>
+                      <th>Tahun</th>
+                      <th>Kondisi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 8: EVALUASI TLD
+               ========================================================================= -->
+          <div id="evaluasi-tld" class="content-section">
+            <div class="card-kaca animated-border-kaca mb-4">
+              <h4><i class="fa-solid fa-radiation text-warning me-2"></i> Input Evaluasi TLD Petugas</h4>
+              <p class="text-muted">Pencatatan dosis paparan radiasi per kuartal (3 Bulan). Satuan menggunakan <strong>mSv (milliSievert)</strong>.</p>
+              <hr class="border-secondary">
+              
+              <form id="formTLD" onsubmit="submitTLD(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Periode Kuartal</label>
+                    <select class="form-select" id="periodeTLD" required>
+                      <option value="" disabled selected>-- Pilih Periode --</option>
+                      <option value="Januari - Maret">Januari - Maret (Q1)</option>
+                      <option value="April - Juni">April - Juni (Q2)</option>
+                      <option value="Juli - September">Juli - September (Q3)</option>
+                      <option value="Oktober - Desember">Oktober - Desember (Q4)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tahun</label>
+                    <input type="number" class="form-control" id="tahunTLD" min="2000" max="2100" placeholder="Contoh: 2026" required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Nama Petugas Radiologi</label>
+                    <input type="text" class="form-control" id="namaPetugasTLD" placeholder="Masukkan nama lengkap petugas" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-danger">Hasil Dosis (mSv)</label>
+                    <input type="number" step="0.01" class="form-control" id="dosisTLD" placeholder="Contoh: 0.15" required>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Keterangan / Status</label>
+                  <select class="form-select" id="keteranganTLD" required>
+                    <option value="Aman (Di bawah NBD)" class="text-success">Aman (Di bawah NBD)</option>
+                    <option value="Mendekati Batas NBD" class="text-warning">Mendekati Batas NBD</option>
+                    <option value="Overexposure (Melebihi NBD)" class="text-danger">Overexposure (Melebihi NBD)</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark" id="btnSubmitTLD">
+                  <i class="fa-solid fa-save me-1"></i> Simpan Data TLD
+                </button>
+                <div id="notifTLD" class="mt-3" style="display:none;"></div>
+              </form>
+            </div>
+
+            <div class="card-kaca">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Laporan TLD Pekerja Radiasi</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniTLD">
+                  <thead>
+                    <tr>
+                      <th>Nama Petugas</th>
+                      <th>Cabang</th>
+                      <th>Periode</th>
+                      <th>Tahun</th>
+                      <th>Dosis (mSv)</th>
+                      <th>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data TLD...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 9: MCU PETUGAS
+               ========================================================================= -->
+          <div id="mcu-petugas" class="content-section">
+            <div class="card-kaca animated-border-kaca mb-4">
+              <h4><i class="fa-solid fa-heart-pulse text-danger me-2"></i> Laporan Medical Check Up (MCU)</h4>
+              <p class="text-muted">Pencatatan riwayat kesehatan berkala tahunan khusus untuk pekerja radiasi.</p>
+              <hr class="border-secondary">
+              
+              <form id="formMCU" onsubmit="submitMCU(event)">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Nama Petugas Radiologi</label>
+                    <input type="text" class="form-control" id="namaPetugasMCU" placeholder="Masukkan nama lengkap petugas" required>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <label class="form-label fw-bold">Tahun MCU</label>
+                    <input type="number" class="form-control" id="tahunMCU" min="2000" max="2100" placeholder="2026" required>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <label class="form-label fw-bold">Tanggal MCU</label>
+                     <input type="date" class="form-control" id="tanggalMCU" required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold">Tempat Pemeriksaan</label>
+                    <input type="text" class="form-control" id="tempatMCU" placeholder="Contoh: RSUD Kota Kendari" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="form-label fw-bold text-primary">Hasil Resume Kesehatan</label>
+                    <select class="form-select" id="hasilMCU" required>
+                      <option value="" disabled selected>-- Pilih Hasil --</option>
+                      <option value="Fit (Sehat Bekerja)" class="text-success">Fit (Sehat Bekerja)</option>
+                      <option value="Fit dengan Catatan" class="text-warning">Fit dengan Catatan</option>
+                      <option value="Unfit (Tidak Sehat)" class="text-danger">Unfit (Tidak Layak Bekerja)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Catatan / Keterangan Tambahan</label>
+                  <textarea class="form-control" id="keteranganMCU" rows="2" placeholder="Isi catatan dari dokter jika ada..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitMCU">
+                  <i class="fa-solid fa-save me-1"></i> Simpan Riwayat MCU
+                </button>
+                <div id="notifMCU" class="mt-3" style="display:none;"></div>
+              </form>
+            </div>
+
+            <div class="card-kaca">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pemeriksaan MCU Terakhir</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle text-center" id="tabelMiniMCU">
+                  <thead>
+                    <tr>
+                      <th>Nama Petugas</th>
+                      <th>Cabang</th>
+                      <th>Tgl Periksa</th>
+                      <th>Tempat MCU</th>
+                      <th>Resume</th>
+                      <th>Catatan Dokter</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data MCU...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 10: TRACKING PENGIRIMAN LOGISTIK
+               ========================================================================= -->
+          <div id="status-pengiriman" class="content-section">
+            <div class="card-kaca animated-border-kaca mb-4">
+              <h4 class="mb-4"><i class="fa-solid fa-truck-fast text-primary me-2"></i> Input Pengiriman Logistik</h4>
+              <hr class="border-secondary">
+              
+              <form id="formPengiriman">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="fw-bold mb-1">Tanggal Pengiriman</label>
+                    <input type="date" id="tglKirim" class="form-control" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="fw-bold mb-1">Estimasi Tiba</label>
+                    <input type="date" id="tglTiba" class="form-control" required>
+                  </div>
+                </div>
+                
+                <div class="row mb-3">
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Jasa Ekspedisi</label>
+                    <input type="text" id="ekspedisi" class="form-control" placeholder="Contoh: J&T, Dakota, JNE" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Nomor Resi</label>
+                    <input type="text" id="noResi" class="form-control" placeholder="Masukkan nomor resi" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Cabang Tujuan</label>
+                    <select id="tujuanCabang" class="form-select" required>
+                      <option value="">-- Pilih Cabang --</option>
+                      <option value="MXM-KDI">MXM-KDI (Kendari)</option>
+                      <option value="MXM-MKS">MXM-MKS (Makassar)</option>
+                      <option value="MXM-PLU">MXM-PLU (Palu)</option>
+                      <option value="MXM-GTO">MXM-GTO (Gorontalo)</option>
+                      <option value="MXM-MND">MXM-MND (Manado)</option>
+                      <option value="MXM-LWK">MXM-LWK (Luwuk)</option>
+                      <option value="MXM-BHD">MXM-BHD (Bahodopi)</option>
+                      <option value="MXM-BUB">MXM-BUB (Bau-Bau)</option>
+                      <option value="MXM-BJM">MXM-BJM (Banjarmasin)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="fw-bold mb-1">Keterangan (Nama & Jumlah Barang)</label>
+                  <textarea id="ketBarang" class="form-control" rows="3" placeholder="Contoh: 5 Box E-Film A4, 1 set Sparepart" required></textarea>
+                </div>
+                
+                <button type="button" class="btn btn-primary w-100 fw-bold py-2" onclick="simpanPengiriman()">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Simpan Data Pengiriman
+                </button>
+              </form>
+            </div>
+
+            <div class="card-kaca">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pengiriman Terakhir</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped mb-0 text-center align-middle" id="tabelHistoriPengiriman" style="font-size:0.85rem; width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Tgl Kirim</th>
+                      <th>Estimasi</th>
+                      <th>Ekspedisi & Resi</th>
+                      <th>Tujuan</th>
+                      <th>Detail Barang</th>
+                      <th>Status Terkini</th>
+                      <th>Aksi (Konfirmasi)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data histori pengiriman...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 11: DATA SIP/SIKR PETUGAS
+               ========================================================================= -->
+          <div id="data-sip" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4 class="mb-4"><i class="fa-solid fa-id-card-clip text-primary me-2"></i> Arsip SIP/SIKR Petugas Radiasi</h4>
+              <hr class="border-secondary">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped text-center align-middle" id="tabelDataSIP" style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Nama Petugas</th>
+                      <th>Cabang</th>
+                      <th>Nomor SIP/SIKR</th>
+                      <th>Tanggal Terbit</th>
+                      <th>Tanggal Expired</th>
+                      <th>Status</th>
+                      <th>Arsip Dokumen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data SIP/SIKR...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 12: PANTAU PERALATAN MCU (KHUSUS ADMIN)
+               ========================================================================= -->
+          <div id="peralatan-mcu" class="content-section">
+            <div class="d-flex align-items-center mb-3 border-bottom border-secondary pb-2">
+              <h5 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-microscope me-2"></i> Dasbor Pantauan Peralatan MCU Cabang</h5>
+            </div>
+            
+            <div class="row" id="wadahKartuMCU">
+              <div class="col-12 text-center text-muted mt-5">
+                <i class="fa-solid fa-spinner fa-spin fs-2"></i><br>Memuat data peralatan...
+              </div>
+            </div>
+          </div>
+
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+
+  <!-- =========================================================================
+       [TAMPILAN-300] MODAL ALERT SISTEM (POP-UP WARNING)
+       ========================================================================= -->
+  <div class="modal fade" id="modalPeringatan" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 99999;">
+      <div class="modal-content border-0 shadow-lg" style="background-color: #ffffff; border: 1px solid var(--border-kaca) !important; color: var(--text-utama);">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Peringatan Sistem Maxima</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="isiPeringatan" style="font-size: 0.95rem; color: var(--text-utama);"></div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary fw-bold btn-sm px-4" data-bs-dismiss="modal">Saya Paham</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- =========================================================================
+       [TAMPILAN-400] MODAL RINCIAN DASHBOARD
+       ========================================================================= -->
+  <div class="modal fade" id="modalRincianDashboard" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="z-index: 99999;">
+      <div class="modal-content border-0 shadow-lg" style="background-color: #ffffff; border: 1px solid var(--border-kaca) !important;">
+        <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);">
+          <h5 class="modal-title fw-bold" id="judulModalRincian"><i class="fa-solid fa-list me-2"></i> Rincian Data</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="loadingRincian" class="text-center py-5 d-none">
+            <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+            <p class="text-muted fw-bold">Mengambil data dari server...</p>
+          </div>
+          <div class="table-responsive" id="tabelRincianContainer">
+            <table class="table table-hover table-striped mb-0 text-center" style="font-size: 0.9rem;">
+              <thead class="table-light" id="headTabelRincian">
+                <!-- Header Injected Here -->
+              </thead>
+              <tbody id="bodyTabelRincian">
+                <!-- Data Injected Here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary fw-bold btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript Library -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+                      <th>Tempat MCU</th>
+                      <th>Resume</th>
+                      <th>Catatan Dokter</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data MCU...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 10: TRACKING PENGIRIMAN LOGISTIK
+               ========================================================================= -->
+          <div id="status-pengiriman" class="content-section">
+            <div class="card-kaca animated-border-kaca mb-4">
+              <h4 class="mb-4"><i class="fa-solid fa-truck-fast text-primary me-2"></i> Input Pengiriman Logistik</h4>
+              <hr class="border-secondary">
+              
+              <form id="formPengiriman">
+                <div class="row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <label class="fw-bold mb-1">Tanggal Pengiriman</label>
+                    <input type="date" id="tglKirim" class="form-control" required>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <label class="fw-bold mb-1">Estimasi Tiba</label>
+                    <input type="date" id="tglTiba" class="form-control" required>
+                  </div>
+                </div>
+                
+                <div class="row mb-3">
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Jasa Ekspedisi</label>
+                    <input type="text" id="ekspedisi" class="form-control" placeholder="Contoh: J&T, Dakota, JNE" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Nomor Resi</label>
+                    <input type="text" id="noResi" class="form-control" placeholder="Masukkan nomor resi" required>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="fw-bold mb-1">Cabang Tujuan</label>
+                    <select id="tujuanCabang" class="form-select" required>
+                      <option value="">-- Pilih Cabang --</option>
+                      <option value="MXM-KDI">MXM-KDI (Kendari)</option>
+                      <option value="MXM-MKS">MXM-MKS (Makassar)</option>
+                      <option value="MXM-PLU">MXM-PLU (Palu)</option>
+                      <option value="MXM-GTO">MXM-GTO (Gorontalo)</option>
+                      <option value="MXM-MND">MXM-MND (Manado)</option>
+                      <option value="MXM-LWK">MXM-LWK (Luwuk)</option>
+                      <option value="MXM-BHD">MXM-BHD (Bahodopi)</option>
+                      <option value="MXM-BUB">MXM-BUB (Bau-Bau)</option>
+                      <option value="MXM-BJM">MXM-BJM (Banjarmasin)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="fw-bold mb-1">Keterangan (Nama & Jumlah Barang)</label>
+                  <textarea id="ketBarang" class="form-control" rows="3" placeholder="Contoh: 5 Box E-Film A4, 1 set Sparepart" required></textarea>
+                </div>
+                
+                <button type="button" class="btn btn-primary w-100 fw-bold py-2" onclick="simpanPengiriman()">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Simpan Data Pengiriman
+                </button>
+              </form>
+            </div>
+
+            <div class="card-kaca">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pengiriman Terakhir</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped mb-0 text-center align-middle" id="tabelHistoriPengiriman" style="font-size:0.85rem; width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Tgl Kirim</th>
+                      <th>Estimasi</th>
+                      <th>Ekspedisi & Resi</th>
+                      <th>Tujuan</th>
+                      <th>Detail Barang</th>
+                      <th>Status Terkini</th>
+                      <th>Aksi (Konfirmasi)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data histori pengiriman...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 11: DATA SIP/SIKR PETUGAS
+               ========================================================================= -->
+          <div id="data-sip" class="content-section">
+            <div class="card-kaca animated-border-kaca">
+              <h4 class="mb-4"><i class="fa-solid fa-id-card-clip text-primary me-2"></i> Arsip SIP/SIKR Petugas Radiasi</h4>
+              <hr class="border-secondary">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped text-center align-middle" id="tabelDataSIP" style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Nama Petugas</th>
+                      <th>Cabang</th>
+                      <th>Nomor SIP/SIKR</th>
+                      <th>Tanggal Terbit</th>
+                      <th>Tanggal Expired</th>
+                      <th>Status</th>
+                      <th>Arsip Dokumen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="7" class="text-center text-muted py-3">Memuat data SIP/SIKR...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- =========================================================================
+               TAB 12: PANTAU PERALATAN MCU (KHUSUS ADMIN)
+               ========================================================================= -->
+          <div id="peralatan-mcu" class="content-section">
+            <div class="d-flex align-items-center mb-3 border-bottom border-secondary pb-2">
+              <h5 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-microscope me-2"></i> Dasbor Pantauan Peralatan MCU Cabang</h5>
+            </div>
+            
+            <div class="row" id="wadahKartuMCU">
+              <div class="col-12 text-center text-muted mt-5">
+                <i class="fa-solid fa-spinner fa-spin fs-2"></i><br>Memuat data peralatan...
+              </div>
+            </div>
+          </div>
+
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+
+  <!-- =========================================================================
+       [TAMPILAN-300] MODAL ALERT SISTEM (POP-UP WARNING)
+       ========================================================================= -->
+  <div class="modal fade" id="modalPeringatan" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 99999;">
+      <div class="modal-content border-0 shadow-lg" style="background-color: #ffffff; border: 1px solid var(--border-kaca) !important; color: var(--text-utama);">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Peringatan Sistem Maxima</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="isiPeringatan" style="font-size: 0.95rem; color: var(--text-utama);"></div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary fw-bold btn-sm px-4" data-bs-dismiss="modal">Saya Paham</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- =========================================================================
+       [TAMPILAN-400] MODAL RINCIAN DASHBOARD
+       ========================================================================= -->
+  <div class="modal fade" id="modalRincianDashboard" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="z-index: 99999;">
+      <div class="modal-content border-0 shadow-lg" style="background-color: #ffffff; border: 1px solid var(--border-kaca) !important;">
+        <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);">
+          <h5 class="modal-title fw-bold" id="judulModalRincian"><i class="fa-solid fa-list me-2"></i> Rincian Data</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="loadingRincian" class="text-center py-5 d-none">
+            <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+            <p class="text-muted fw-bold">Mengambil data dari server...</p>
+          </div>
+          <div class="table-responsive" id="tabelRincianContainer">
+            <table class="table table-hover table-striped mb-0 text-center" style="font-size: 0.9rem;">
+              <thead class="table-light" id="headTabelRincian">
+                <!-- Header Injected Here -->
+              </thead>
+              <tbody id="bodyTabelRincian">
+                <!-- Data Injected Here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary fw-bold btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript Library -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  
+  <!-- Main Logic -->
+  <script src="app.js?v=2.4"></script>
+</body>
+</html>
