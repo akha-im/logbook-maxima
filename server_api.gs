@@ -126,6 +126,15 @@ function doPost(e) {
       case "konfirmasiTerimaBarang":
         result = { success: konfirmasiTerimaBarang(postData.rowIdx) };
         break;
+      case "updateServisReport":
+        result = { success: updateServisReport(data) };
+        break;
+      case "uploadArsipTLD":
+        result = uploadArsipTLD(data);
+        break;
+      case "uploadArsipMCU":
+        result = uploadArsipMCU(data);
+        break;
       default:
         return respondError("Aksi POST tidak dikenali.");
     }
@@ -311,6 +320,18 @@ function simpanServis(data) {
   return true;
 }
 
+function updateServisReport(data) {
+  var sheet = getSheet("Log_Maintenance_CR");
+  var allData = sheet.getDataRange().getValues();
+  for (var i = 1; i < allData.length; i++) {
+    if (allData[i][0] == data.idTiket) {
+      sheet.getRange(i + 1, 9).setValue(data.report);
+      return true;
+    }
+  }
+  return false;
+}
+
 function simpanInventori(data) {
   var sheet = getSheet("Inventori_Asset_Radiologi");
   var idAsset = "AST-" + Math.floor(Math.random() * 1000000);
@@ -389,7 +410,7 @@ function getDashboardData() {
   var data = {
     ringkasan: { pasien: 0, film: 0, order: 0, cr: 0 },
     chart: { labels: [], pasien: [], film: [] },
-    cabangList: ['MXM-KDI', 'MXM-MKS', 'MXM-PLU', 'MXM-GTL', 'MXM-MND', 'MXM-LWK', 'MXM-BHD', 'MXM-BUB', 'MXM-BJM'],
+    cabangList: ['MXM-KDI', 'MXM-MKS', 'MXM-PLU', 'MXM-GTO', 'MXM-MND', 'MXM-LWK', 'MXM-BHD', 'MXM-BUB', 'MXM-BJM'],
     tabelData: { harian: [], order: [], inventori: [], perijinan: [], logbook: [] },
     stokRendah: []
   };
@@ -687,12 +708,14 @@ function getServisMiniData(cabangFilter) {
     for (var i = data.length - 1; i > 0; i--) {
       if (cabangFilter === "ALL" || data[i][2] === cabangFilter) {
         res.push({ 
+          id: data[i][0],
           tanggal: formatTanggalAman(data[i][1]), 
           cabang: data[i][2], 
           alat: data[i][3], 
           gejala: data[i][4], 
           urgensi: data[i][5], 
-          status: data[i][6] 
+          status: data[i][6],
+          report: data[i][8] || ""
         });
       }
       if (res.length >= 20) break;
@@ -728,13 +751,26 @@ function getTldMiniData(cabangFilter) {
     var res = [];
     for (var i = data.length - 1; i > 0; i--) {
       if (cabangFilter === "ALL" || data[i][2] === cabangFilter) {
+        
+        // Asumsi "Link Arsip" ada di kolom terakhir atau dicari via header
+        var headers = data[0];
+        var link = "";
+        for(var c=0; c<headers.length; c++){
+          if(headers[c].toString().toLowerCase().indexOf("link arsip") > -1){
+            link = data[i][c] || "";
+            break;
+          }
+        }
+        
         res.push({ 
+          id: data[i][0],
           cabang: data[i][2], 
           nama: data[i][5], 
           periode: data[i][3], 
           tahun: data[i][4], 
           dosis: data[i][6], 
-          keterangan: data[i][7] 
+          keterangan: data[i][7],
+          linkArsip: link
         });
       }
       if (res.length >= 20) break;
@@ -749,13 +785,25 @@ function getMcuMiniData(cabangFilter) {
     var res = [];
     for (var i = data.length - 1; i > 0; i--) {
       if (cabangFilter === "ALL" || data[i][2] === cabangFilter) {
+        
+        var headers = data[0];
+        var link = "";
+        for(var c=0; c<headers.length; c++){
+          if(headers[c].toString().toLowerCase().indexOf("link arsip") > -1){
+            link = data[i][c] || "";
+            break;
+          }
+        }
+        
         res.push({ 
+          id: data[i][0],
           cabang: data[i][2], 
           nama: data[i][3], 
           tanggal: formatTanggalAman(data[i][5]), 
           tempat: data[i][6], 
           hasil: data[i][7], 
-          ket: data[i][8] 
+          ket: data[i][8],
+          linkArsip: link
         });
       }
       if (res.length >= 20) break;
@@ -920,4 +968,105 @@ function jalankanBackupRotasi() {
       }
     }
   } catch(e) {}
+}
+
+function uploadArsipTLD(data) {
+  try {
+    var folderUtamaId = "1W0Yj7RXxVIFGB7YhrrUu7qtQ2d5cWGbG"; // ID Folder Utama
+    var folderUtama = DriveApp.getFolderById(folderUtamaId);
+    
+    // Cari atau buat subfolder cabang
+    var subfolders = folderUtama.getFoldersByName(data.cabang);
+    var folderCabang;
+    if (subfolders.hasNext()) {
+      folderCabang = subfolders.next();
+    } else {
+      folderCabang = folderUtama.createFolder(data.cabang);
+    }
+    
+    // Simpan file
+    var decodedData = Utilities.base64Decode(data.base64Data);
+    var blob = Utilities.newBlob(decodedData, data.mimeType, data.filename);
+    var file = folderCabang.createFile(blob);
+    var fileUrl = file.getUrl();
+    
+    // Simpan link ke sheet Evaluasi TLD
+    var sheet = getSheet("Log_Evaluasi_TLD");
+    var allData = sheet.getDataRange().getValues();
+    var headers = allData[0];
+    var linkColIndex = -1;
+    
+    for(var c = 0; c < headers.length; c++){
+      if(headers[c].toString().toLowerCase().indexOf("link arsip") > -1) {
+        linkColIndex = c + 1;
+        break;
+      }
+    }
+    
+    if(linkColIndex === -1) {
+      // Jika kolom tidak ditemukan, buat di kolom terakhir + 1
+      linkColIndex = headers.length + 1;
+      sheet.getRange(1, linkColIndex).setValue("Link Arsip");
+    }
+    
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][0] == data.idTiket) {
+        sheet.getRange(i + 1, linkColIndex).setValue(fileUrl);
+        return { success: true, url: fileUrl };
+      }
+    }
+    return { success: false, error: "Data TLD tidak ditemukan di Spreadsheet." };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function uploadArsipMCU(data) {
+  try {
+    var folderUtamaId = "1PJiDL5O6sY1lFZTb-lxUQkk9uhg2VqAi"; // ID Folder MCU
+    var folderUtama = DriveApp.getFolderById(folderUtamaId);
+    
+    // Cari atau buat subfolder cabang
+    var subfolders = folderUtama.getFoldersByName(data.cabang);
+    var folderCabang;
+    if (subfolders.hasNext()) {
+      folderCabang = subfolders.next();
+    } else {
+      folderCabang = folderUtama.createFolder(data.cabang);
+    }
+    
+    // Simpan file
+    var decodedData = Utilities.base64Decode(data.base64Data);
+    var blob = Utilities.newBlob(decodedData, data.mimeType, data.filename);
+    var file = folderCabang.createFile(blob);
+    var fileUrl = file.getUrl();
+    
+    // Simpan link ke sheet MCU
+    var sheet = getSheet("Log_MCU_Petugas");
+    var allData = sheet.getDataRange().getValues();
+    var headers = allData[0];
+    var linkColIndex = -1;
+    
+    for(var c = 0; c < headers.length; c++){
+      if(headers[c].toString().toLowerCase().indexOf("link arsip") > -1) {
+        linkColIndex = c + 1;
+        break;
+      }
+    }
+    
+    if(linkColIndex === -1) {
+      linkColIndex = headers.length + 1;
+      sheet.getRange(1, linkColIndex).setValue("Link Arsip");
+    }
+    
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][0] == data.idTiket) {
+        sheet.getRange(i + 1, linkColIndex).setValue(fileUrl);
+        return { success: true, url: fileUrl };
+      }
+    }
+    return { success: false, error: "Data MCU tidak ditemukan di Spreadsheet." };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
 }

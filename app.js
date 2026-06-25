@@ -7,7 +7,7 @@
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbwxY2-IlAw-sLvhegqR431H-hBHp8HBHRJsYLGhC-8zOIeWvpOsVmgMQh_Oe-fLeinQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxYTXWNcog5Fb5E9yRJ9bhLCo7MM7k5o4f9d0eg6UsvQkoKBYHaRu6AmO0U0d4TZJyp/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -928,18 +928,25 @@ function loadLogbookPasienData() {
 function loadTldData() {
   var tb = document.querySelector('#tabelMiniTLD tbody'); 
   if(!tb) return;
-  tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
   
   callAPI("GET", { action: "getTld", cabang: getCabFilter() })
     .then(function(data) {
       if (data.length === 0) {
-        tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada laporan TLD petugas.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada laporan TLD petugas.</td></tr>';
       } else {
         tb.innerHTML = '';
         data.forEach(function(r) { 
           var c = "badge-glow-success"; 
           if(r.keterangan.indexOf("Mendekati") !== -1) { c = "badge-glow-warning"; }
           if(r.keterangan.indexOf("Overexposure") !== -1 || r.keterangan.indexOf("Melebihi") !== -1) { c = "badge-glow-danger"; }
+          
+          var aksiBtn = "";
+          if (r.linkArsip) {
+            aksiBtn = '<a href="' + r.linkArsip + '" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat</a>';
+          } else {
+            aksiBtn = '<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadTLD(\'' + r.id + '\', \'' + r.cabang + '\')"><i class="fa-solid fa-upload"></i> Upload</button>';
+          }
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.nama + '</td>' +
@@ -948,28 +955,36 @@ function loadTldData() {
             '<td>' + r.tahun + '</td>' +
             '<td class="fw-bold text-primary">' + r.dosis + ' mSv</td>' +
             '<td><span class="badge ' + c + '">' + r.keterangan + '</span></td>' +
+            '<td>' + aksiBtn + '</td>' +
           '</tr>'; 
         });
       }
     })
-    .catch(function(e) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
+    .catch(function(e) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
 }
 
 function loadMcuData() {
   var tb = document.querySelector('#tabelMiniMCU tbody'); 
   if(!tb) return;
-  tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
   
   callAPI("GET", { action: "getMcu", cabang: getCabFilter() })
     .then(function(data) {
       if (data.length === 0) {
-        tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada data MCU petugas.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada data MCU petugas.</td></tr>';
       } else {
         tb.innerHTML = '';
         data.forEach(function(r) { 
           var c = "badge-glow-success"; 
           if(r.hasil.indexOf("Catatan") !== -1) { c = "badge-glow-warning"; }
           if(r.hasil.indexOf("Unfit") !== -1) { c = "badge-glow-danger"; }
+          
+          var aksiBtn = "";
+          if (r.linkArsip) {
+            aksiBtn = '<a href="' + r.linkArsip + '" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat</a>';
+          } else {
+            aksiBtn = '<button class="btn btn-sm btn-outline-danger text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadMCU(\'' + r.id + '\', \'' + r.cabang + '\')"><i class="fa-solid fa-upload"></i> Upload</button>';
+          }
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.nama + '</td>' +
@@ -978,11 +993,12 @@ function loadMcuData() {
             '<td>' + r.tempat + '</td>' +
             '<td><span class="badge ' + c + '">' + r.hasil + '</span></td>' +
             '<td class="text-start"><small>' + r.ket + '</small></td>' +
+            '<td>' + aksiBtn + '</td>' +
           '</tr>'; 
         });
       }
     })
-    .catch(function(e) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
+    .catch(function(e) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
 }
 
 function loadInventoriData() {
@@ -1018,12 +1034,12 @@ function loadInventoriData() {
 function loadServisData() {
   var tb = document.querySelector('#tabelMiniServis tbody'); 
   if(!tb) return;
-  tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
   
   callAPI("GET", { action: "getServis", cabang: getCabFilter() })
     .then(function(data) {
       if (data.length === 0) {
-        tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada histori servis CR/alat.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada histori servis CR/alat.</td></tr>';
       } else {
         tb.innerHTML = '';
         data.forEach(function(r) { 
@@ -1037,11 +1053,12 @@ function loadServisData() {
             '<td class="text-start"><small>' + r.gejala + '</small></td>' +
             '<td class="' + cu + '">' + r.urgensi + '</td>' +
             '<td><span class="badge ' + cs + '">' + r.status + '</span></td>' +
+            '<td><button class="btn btn-sm btn-outline-primary fw-bold" style="font-size: 0.75rem" onclick="bukaModalReport(\'' + r.id + '\', \'' + encodeURIComponent(r.report) + '\')"><i class="fa-solid fa-file-pen"></i> Report</button></td>' +
           '</tr>'; 
         });
       }
     })
-    .catch(function(e) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
+    .catch(function(e) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
 }
 
 function loadOrderData() {
@@ -1593,5 +1610,203 @@ function bukaRincianDash(tipe) {
         tb.innerHTML = '<tr><td colspan="4" class="text-danger py-4"><i class="fa-solid fa-triangle-exclamation"></i> Gagal mengambil data rincian dari server.</td></tr>';
       });
   }
+}
+
+// ==========================================
+// FUNGSI REPORT SERVIS MAINTENANCE
+// ==========================================
+function bukaModalReport(idTiket, reportTextEncoded) {
+  var reportText = "";
+  try {
+    if(reportTextEncoded && reportTextEncoded !== "undefined" && reportTextEncoded !== "null") {
+      reportText = decodeURIComponent(reportTextEncoded);
+    }
+  } catch(e) {}
+  
+  document.getElementById("reportIdTiket").value = idTiket;
+  document.getElementById("reportTextarea").value = reportText;
+  
+  var modal = new bootstrap.Modal(document.getElementById('modalReportServis'));
+  modal.show();
+}
+
+function simpanReportServis() {
+  var id = document.getElementById("reportIdTiket").value;
+  var teks = document.getElementById("reportTextarea").value;
+  
+  if (!id) return;
+  
+  var btnSave = document.querySelector("#modalReportServis .btn-success");
+  var oriText = btnSave.innerHTML;
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...';
+  btnSave.disabled = true;
+  
+  var dataPayload = {
+    idTiket: id,
+    report: teks
+  };
+  
+  callAPI("POST", { action: "updateServisReport", data: dataPayload })
+    .then(function(res) {
+      if(res.success) {
+        var modalEl = document.getElementById('modalReportServis');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) modal.hide();
+        
+        loadServisData();
+        tampilkanPeringatan("Berhasil", "Report berhasil disimpan ke server!");
+      } else {
+        tampilkanPeringatan("Gagal", "Gagal menyimpan report.");
+      }
+    })
+    .catch(function(err) {
+      tampilkanPeringatan("Error", "Terjadi kesalahan saat menyimpan.");
+    })
+    .finally(function() {
+      btnSave.innerHTML = oriText;
+      btnSave.disabled = false;
+    });
+}
+
+// ==========================================
+// FUNGSI UPLOAD ARSIP TLD
+// ==========================================
+function bukaModalUploadTLD(idTiket, cabang) {
+  document.getElementById("uploadTldIdTiket").value = idTiket;
+  document.getElementById("uploadTldCabang").value = cabang;
+  document.getElementById("inputFileTLD").value = "";
+  
+  var modal = new bootstrap.Modal(document.getElementById('modalUploadTLD'));
+  modal.show();
+}
+
+function prosesUploadTLD() {
+  var id = document.getElementById("uploadTldIdTiket").value;
+  var cabang = document.getElementById("uploadTldCabang").value;
+  var fileInput = document.getElementById("inputFileTLD");
+  
+  if (!fileInput.files || fileInput.files.length === 0) {
+    tampilkanPeringatan("Perhatian", "Pilih file terlebih dahulu sebelum mengupload.");
+    return;
+  }
+  
+  var file = fileInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    tampilkanPeringatan("Perhatian", "Ukuran file terlalu besar! Maksimal 5MB.");
+    return;
+  }
+  
+  var btnSave = document.querySelector("#modalUploadTLD .btn-warning");
+  var oriText = btnSave.innerHTML;
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Mengupload...';
+  btnSave.disabled = true;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var base64Data = dataUrl.split(',')[1];
+    
+    var dataPayload = {
+      idTiket: id,
+      cabang: cabang,
+      filename: id + "_" + file.name,
+      mimeType: file.type,
+      base64Data: base64Data
+    };
+    
+    callAPI("POST", { action: "uploadArsipTLD", data: dataPayload })
+      .then(function(res) {
+        if(res.success) {
+          var modalEl = document.getElementById('modalUploadTLD');
+          var modal = bootstrap.Modal.getInstance(modalEl);
+          if(modal) modal.hide();
+          
+          loadTldData();
+          tampilkanPeringatan("Berhasil", "Arsip TLD berhasil di-upload ke Google Drive!");
+        } else {
+          tampilkanPeringatan("Gagal", res.error || "Gagal mengupload arsip.");
+        }
+      })
+      .catch(function(err) {
+        tampilkanPeringatan("Error", "Terjadi kesalahan jaringan.");
+      })
+      .finally(function() {
+        btnSave.innerHTML = oriText;
+        btnSave.disabled = false;
+      });
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// ==========================================
+// FUNGSI UPLOAD ARSIP MCU
+// ==========================================
+function bukaModalUploadMCU(idTiket, cabang) {
+  document.getElementById("uploadMcuIdTiket").value = idTiket;
+  document.getElementById("uploadMcuCabang").value = cabang;
+  document.getElementById("inputFileMCU").value = "";
+  
+  var modal = new bootstrap.Modal(document.getElementById('modalUploadMCU'));
+  modal.show();
+}
+
+function prosesUploadMCU() {
+  var id = document.getElementById("uploadMcuIdTiket").value;
+  var cabang = document.getElementById("uploadMcuCabang").value;
+  var fileInput = document.getElementById("inputFileMCU");
+  
+  if (!fileInput.files || fileInput.files.length === 0) {
+    tampilkanPeringatan("Perhatian", "Pilih file terlebih dahulu sebelum mengupload.");
+    return;
+  }
+  
+  var file = fileInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    tampilkanPeringatan("Perhatian", "Ukuran file terlalu besar! Maksimal 5MB.");
+    return;
+  }
+  
+  var btnSave = document.querySelector("#modalUploadMCU .btn-danger");
+  var oriText = btnSave.innerHTML;
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Mengupload...';
+  btnSave.disabled = true;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var base64Data = dataUrl.split(',')[1];
+    
+    var dataPayload = {
+      idTiket: id,
+      cabang: cabang,
+      filename: id + "_" + file.name,
+      mimeType: file.type,
+      base64Data: base64Data
+    };
+    
+    callAPI("POST", { action: "uploadArsipMCU", data: dataPayload })
+      .then(function(res) {
+        if(res.success) {
+          var modalEl = document.getElementById('modalUploadMCU');
+          var modal = bootstrap.Modal.getInstance(modalEl);
+          if(modal) modal.hide();
+          
+          loadMcuData();
+          tampilkanPeringatan("Berhasil", "Arsip MCU berhasil di-upload ke Google Drive!");
+        } else {
+          tampilkanPeringatan("Gagal", res.error || "Gagal mengupload arsip.");
+        }
+      })
+      .catch(function(err) {
+        tampilkanPeringatan("Error", "Terjadi kesalahan jaringan.");
+      })
+      .finally(function() {
+        btnSave.innerHTML = oriText;
+        btnSave.disabled = false;
+      });
+  };
+  
+  reader.readAsDataURL(file);
 }
 
