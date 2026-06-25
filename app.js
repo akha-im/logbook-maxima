@@ -1726,7 +1726,7 @@ function compressImageAndGetBase64(file, maxSizeMB, callback) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      var quality = 0.95; // Mulai dari kualitas nyaris sempurna (95%)
+      var quality = 0.85; // Mulai dari kualitas optimal yang hemat memori (85%)
       var dataUrl = canvas.toDataURL('image/jpeg', quality);
       var base64 = dataUrl.split(',')[1];
       var approxSizeKB = (base64.length * 0.75) / 1024;
