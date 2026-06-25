@@ -98,16 +98,19 @@
               <div class="input-group w-auto shadow-sm">
                 <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-filter"></i></span>
                 <select class="form-select fw-bold border-secondary text-primary" id="filterDashboard" onchange="updateDashboardView()">
-                  <option value="ALL">🌐 Tampilkan Keseluruhan (Semua Cabang)</option>
-                  <option value="MXM-KDI">📍 MXM-KDI (Kendari - Pusat)</option>
-                  <option value="MXM-MKS">📍 MXM-MKS (Makassar)</option>
-                  <option value="MXM-PLU">📍 MXM-PLU (Palu)</option>
-                  <option value="MXM-GTO">📍 MXM-GTO (Gorontalo)</option>
-                  <option value="MXM-MND">📍 MXM-MND (Manado)</option>
-                  <option value="MXM-LWK">📍 MXM-LWK (Luwuk)</option>
-                  <option value="MXM-BHD">📍 MXM-BHD (Bahodopi)</option>
-                  <option value="MXM-BUB">📍 MXM-BUB (Bau-Bau)</option>
-                  <option value="MXM-BJM">📍 MXM-BJM (Banjarmasin)</option>
+                  <option value="ALL">📍 Tampilkan Keseluruhan (Semua Cabang)</option>
+                  <option value="MXM-KDI">🏢 MXM-KDI (Kendari - Pusat)</option>
+                  <option value="MXM-MKS">🏢 MXM-MKS (Makassar)</option>
+                  <option value="MXM-PLU">🏢 MXM-PLU (Palu)</option>
+                  <option value="MXM-GTO">🏢 MXM-GTO (Gorontalo)</option>
+                  <option value="MXM-MND">🏢 MXM-MND (Manado)</option>
+                  <option value="MXM-LWK">🏢 MXM-LWK (Luwuk)</option>
+                  <option value="MXM-BHD">🏢 MXM-BHD (Bahodopi)</option>
+                  <option value="MXM-BUB">🏢 MXM-BUB (Bau-Bau)</option>
+                  <option value="MXM-BJM">🏢 MXM-BJM (Banjarmasin)</option>
+                  <option value="MXM-KLK">🏢 MXM-KLK (Kolaka)</option>
+                  <option value="MXM-MMJ">🏢 MXM-MMJ (Mamuju)</option>
+                  <option value="MXM-PLK">🏢 MXM-PLK (Palangkaraya)</option>
                 </select>
               </div>
             </div>
@@ -186,7 +189,7 @@
                       <h6 class="fw-bold mb-4 text-secondary"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Peringatan Stok Terendah</h6>
                       <div class="table-responsive">
                         <table class="table table-sm table-hover text-center align-middle" id="tabelStokRendahDash">
-                          <thead>
+                          <thead class="table-danger">
                             <tr>
                               <th>Cabang</th>
                               <th>Film</th>
@@ -210,7 +213,7 @@
                   <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-calendar-day me-2 text-primary"></i> Data Laporan Harian Terkini (Seluruh Cabang)</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-striped table-hover align-middle text-center" id="tabelHarianDash">
-                      <thead>
+                      <thead class="table-primary">
                         <tr>
                           <th>Tanggal</th>
                           <th>Cabang</th>
@@ -236,7 +239,7 @@
                   <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i> Pengajuan Order Logistik dari Cabang</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle text-center" id="tabelOrderDash">
-                      <thead>
+                      <thead class="table-info">
                         <tr>
                           <th>Tanggal Order</th>
                           <th>Cabang Asal</th>
@@ -260,7 +263,7 @@
                   <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Data Inventori Seluruh Alat Radiologi</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelInventoriDash">
-                      <thead>
+                      <thead class="table-secondary">
                         <tr>
                           <th>Cabang</th>
                           <th>Kategori Aset</th>
@@ -284,7 +287,7 @@
                   <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-file-contract me-2 text-primary"></i> Pantauan Status Ijin BAPETEN & UKES Pesawat X-Ray</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelPerijinanDash" style="font-size:0.8rem;">
-                      <thead>
+                      <thead class="table-success">
                         <tr>
                           <th>Cabang</th>
                           <th>Nomor KTUN Ijin</th>
@@ -319,7 +322,7 @@
                   </div>
                   <div class="table-responsive">
                     <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelRekapLogbookDash">
-                      <thead>
+                      <thead class="table-primary">
                         <tr>
                           <th>Bulan Laporan</th>
                           <th>Cabang</th>
@@ -427,7 +430,7 @@
                   <textarea class="form-control" id="keteranganRijek" rows="2" placeholder="Contoh: Underexpose, film terlipat, nyangkut di printer..."></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitHarian">
+                <button type="submit" class="btn btn-info text-dark w-100 py-2 fw-bold" id="btnSubmitHarian">
                   <i class="fa-solid fa-paper-plane me-1"></i> Simpan Laporan Harian
                 </button>
                 <div id="notifHarian" class="mt-3" style="display:none;"></div>
@@ -437,7 +440,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Laporan Harian Terakhir</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniHarian">
-                  <thead>
+                  <thead class="table-primary">
                     <tr>
                       <th>Tanggal</th>
                       <th>Cabang</th>
@@ -495,7 +498,7 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitStok">
+                <button type="submit" class="btn w-100 py-2 fw-bold" style="background-color: #6366f1; color: white;" id="btnSubmitStok">
                   <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data Opname (Kalkulasi Otomatis)
                 </button>
                 <div id="notifStok" class="mt-3" style="display:none;"></div>
@@ -505,7 +508,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Mutasi Stok Terakhir (Otomatis)</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniStok">
-                  <thead>
+                  <thead class="table-info">
                     <tr>
                       <th>Tanggal Update</th>
                       <th>Cabang</th>
@@ -543,7 +546,7 @@
 
                 <div class="table-responsive mb-4">
                   <table class="table table-bordered table-hover text-center align-middle">
-                    <thead>
+                    <thead class="table-primary">
                       <tr>
                         <th style="width: 40%;">Jenis Pemeriksaan</th>
                         <th style="width: 30%;">Jumlah Pasien / Bulan</th>
@@ -590,7 +593,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Input Logbook Pasien (Pasien / Ekspose)</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelMiniLogbookPasien">
-                  <thead>
+                  <thead class="table-primary">
                     <tr>
                       <th>Bulan Laporan</th>
                       <th>Cabang</th>
@@ -668,7 +671,7 @@
                   <textarea class="form-control" id="keteranganOrder" rows="2" placeholder="Contoh: Stok menipis, sisa 1 box."></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitOrder">
+                <button type="submit" class="btn btn-success w-100 py-2 fw-bold" id="btnSubmitOrder">
                   <i class="fa-solid fa-paper-plane me-1"></i> Kirim Pengajuan Order
                 </button>
                 <div id="notifOrder" class="mt-3" style="display:none;"></div>
@@ -678,7 +681,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pengajuan Order Barang</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniOrder">
-                  <thead>
+                  <thead class="table-info">
                     <tr>
                       <th>Tanggal Order</th>
                       <th>Cabang</th>
@@ -742,7 +745,7 @@
                   </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold bg-danger border-0" id="btnSubmitServis">
+                <button type="submit" class="btn btn-danger w-100 py-2 fw-bold" id="btnSubmitServis">
                   <i class="fa-solid fa-triangle-exclamation me-1"></i> Kirim Tiket Servis
                 </button>
                 <div id="notifServis" class="mt-3" style="display:none;"></div>
@@ -752,7 +755,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Tiket Kerusakan Alat</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniServis">
-                  <thead>
+                  <thead class="table-danger">
                     <tr>
                       <th>Tanggal Lapor</th>
                       <th>Cabang</th>
@@ -816,7 +819,7 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitInventori">
+                <button type="submit" class="btn w-100 py-2 fw-bold" style="background-color: #76b900; color: white;" id="btnSubmitInventori">
                   <i class="fa-solid fa-save me-1"></i> Simpan Aset Baru ke Database
                 </button>
                 <div id="notifInventori" class="mt-3" style="display:none;"></div>
@@ -827,7 +830,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Daftar Inventori Aset Radiologi Terdaftar</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniInventori">
-                  <thead>
+                  <thead class="table-secondary">
                     <tr>
                       <th>Kategori Aset</th>
                       <th>Cabang</th>
@@ -892,7 +895,7 @@
                   </select>
                 </div>
 
-                <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark" id="btnSubmitTLD">
+                <button type="submit" class="btn w-100 py-2 fw-bold text-dark" style="background-color: #facc15;" id="btnSubmitTLD">
                   <i class="fa-solid fa-save me-1"></i> Simpan Data TLD
                 </button>
                 <div id="notifTLD" class="mt-3" style="display:none;"></div>
@@ -903,7 +906,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Laporan TLD Pekerja Radiasi</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniTLD">
-                  <thead>
+                  <thead class="table-warning">
                     <tr>
                       <th>Nama Petugas</th>
                       <th>Cabang</th>
@@ -967,7 +970,7 @@
                   <textarea class="form-control" id="keteranganMCU" rows="2" placeholder="Isi catatan dari dokter jika ada..."></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="btnSubmitMCU">
+                <button type="submit" class="btn w-100 py-2 fw-bold" style="background-color: #be123c; color: white;" id="btnSubmitMCU">
                   <i class="fa-solid fa-save me-1"></i> Simpan Riwayat MCU
                 </button>
                 <div id="notifMCU" class="mt-3" style="display:none;"></div>
@@ -978,7 +981,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pemeriksaan MCU Terakhir</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniMCU">
-                  <thead>
+                  <thead class="table-danger">
                     <tr>
                       <th>Nama Petugas</th>
                       <th>Cabang</th>
@@ -1001,7 +1004,7 @@
                ========================================================================= -->
           <div id="status-pengiriman" class="content-section">
             <div class="card-kaca animated-border-kaca mb-4">
-              <h4 class="mb-4"><i class="fa-solid fa-truck-fast text-primary me-2"></i> Input Pengiriman Logistik</h4>
+              <h4 class="mb-4"><i class="fa-solid fa-truck-fast me-2" style="color: #f97316;"></i> Input Pengiriman Logistik</h4>
               <hr class="border-secondary">
               
               <form id="formPengiriman">
@@ -1038,6 +1041,9 @@
                       <option value="MXM-BHD">MXM-BHD (Bahodopi)</option>
                       <option value="MXM-BUB">MXM-BUB (Bau-Bau)</option>
                       <option value="MXM-BJM">MXM-BJM (Banjarmasin)</option>
+                      <option value="MXM-KLK">MXM-KLK (Kolaka)</option>
+                      <option value="MXM-MMJ">MXM-MMJ (Mamuju)</option>
+                      <option value="MXM-PLK">MXM-PLK (Palangkaraya)</option>
                     </select>
                   </div>
                 </div>
@@ -1047,7 +1053,7 @@
                   <textarea id="ketBarang" class="form-control" rows="3" placeholder="Contoh: 5 Box E-Film A4, 1 set Sparepart" required></textarea>
                 </div>
                 
-                <button type="button" class="btn btn-primary w-100 fw-bold py-2" onclick="simpanPengiriman()">
+                <button type="button" class="btn w-100 fw-bold py-2" style="background-color: #f97316; color: white;" onclick="simpanPengiriman()">
                   <i class="fa-solid fa-paper-plane me-1"></i> Simpan Data Pengiriman
                 </button>
               </form>
@@ -1196,7 +1202,7 @@
                ========================================================================= -->
           <div id="status-pengiriman" class="content-section">
             <div class="card-kaca animated-border-kaca mb-4">
-              <h4 class="mb-4"><i class="fa-solid fa-truck-fast text-primary me-2"></i> Input Pengiriman Logistik</h4>
+              <h4 class="mb-4"><i class="fa-solid fa-truck-fast me-2" style="color: #f97316;"></i> Input Pengiriman Logistik</h4>
               <hr class="border-secondary">
               
               <form id="formPengiriman">
@@ -1233,6 +1239,9 @@
                       <option value="MXM-BHD">MXM-BHD (Bahodopi)</option>
                       <option value="MXM-BUB">MXM-BUB (Bau-Bau)</option>
                       <option value="MXM-BJM">MXM-BJM (Banjarmasin)</option>
+                      <option value="MXM-KLK">MXM-KLK (Kolaka)</option>
+                      <option value="MXM-MMJ">MXM-MMJ (Mamuju)</option>
+                      <option value="MXM-PLK">MXM-PLK (Palangkaraya)</option>
                     </select>
                   </div>
                 </div>
@@ -1242,7 +1251,7 @@
                   <textarea id="ketBarang" class="form-control" rows="3" placeholder="Contoh: 5 Box E-Film A4, 1 set Sparepart" required></textarea>
                 </div>
                 
-                <button type="button" class="btn btn-primary w-100 fw-bold py-2" onclick="simpanPengiriman()">
+                <button type="button" class="btn w-100 fw-bold py-2" style="background-color: #f97316; color: white;" onclick="simpanPengiriman()">
                   <i class="fa-solid fa-paper-plane me-1"></i> Simpan Data Pengiriman
                 </button>
               </form>
@@ -1252,7 +1261,7 @@
               <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i> Histori Pengiriman Terakhir</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-hover table-striped mb-0 text-center align-middle" id="tabelHistoriPengiriman" style="font-size:0.85rem; width:100%;">
-                  <thead>
+                  <thead class="table-primary">
                     <tr>
                       <th>Tgl Kirim</th>
                       <th>Estimasi</th>
@@ -1280,7 +1289,7 @@
               <hr class="border-secondary">
               <div class="table-responsive">
                 <table class="table table-sm table-hover table-striped text-center align-middle" id="tabelDataSIP" style="width:100%;">
-                  <thead>
+                  <thead class="table-primary">
                     <tr>
                       <th>Nama Petugas</th>
                       <th>Cabang</th>
@@ -1382,3 +1391,7 @@
   <script src="app.js?v=2.4"></script>
 </body>
 </html>
+
+
+
+

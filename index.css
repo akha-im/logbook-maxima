@@ -412,8 +412,6 @@ body {
 }
 
 .table th {
-  background-color: #0f172a !important; /* Deep Slate / Dark Blue Header */
-  color: #ffffff !important;             /* White text */
   border-bottom: 2px solid #1e293b !important;
   font-weight: 700;
   font-size: 0.8rem;
@@ -641,19 +639,15 @@ body, .table, .btn, .nav-link, .card, h1, h2, h3, h4, h5, h6, input, select {
 /* 4. Data Angka & Isi Tabel: 13px, Regular, Line Height 145% */
 .table td {
   font-size: 13px !important;
-  font-weight: 400 !important;
   line-height: 1.45 !important;
-  color: #334155 !important;
 }
 
-/* 5. Header / Judul Kolom Tabel: 12px, Semi-Bold, Sedikit Redup */
+/* 5. Header / Judul Kolom Tabel: 12px, Semi-Bold */
 .table th {
   font-size: 12px !important;
   font-weight: 600 !important;
-  color: #64748b !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background-color: rgba(241, 245, 249, 0.8) !important; /* Abu-abu estetik */
 }
 
 /* 6. Nilai Utama / KPI (Angka Besar di Dashboard): 24px, Bold */

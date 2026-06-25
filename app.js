@@ -15,6 +15,26 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwxY2-IlAw-sLvhegqR431H
 var currentCabang = ""; 
 var currentRole = "";
 
+function getBadgeCabang(cabang) {
+    if (!cabang || cabang === "-") return "-";
+    var c = cabang.toUpperCase().trim();
+    var bg = "#334155";
+    var color = "#fff";
+    if (c.includes("KDI")) bg = "linear-gradient(135deg, #1e3a8a, #3b82f6)";
+    else if (c.includes("MKS")) bg = "#ef4444";
+    else if (c.includes("BJM")) bg = "#76b900";
+    else if (c.includes("PLU")) { bg = "#eab308"; color = "#000"; }
+    else if (c.includes("GTO")) bg = "#166534";
+    else if (c.includes("MND")) bg = "#f97316";
+    else if (c.includes("LWK")) bg = "#ec4899";
+    else if (c.includes("BHD") || c.includes("DIHD")) bg = "#8b4513";
+    else if (c.includes("KLK")) bg = "#334155";
+    else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #000000, #6b7280)";
+    else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0ea5e9, #10b981)";
+    else if (c.includes("BUB")) bg = "#ea580c";
+    return '<span class="badge" style="background:' + bg + '; color:' + color + '; font-weight:700; padding:6px 10px; border-radius:6px; letter-spacing:0.5px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">' + cabang + '</span>';
+}
+
 window.onload = function() {
   var today = new Date();
   var dd = String(today.getDate()).padStart(2, '0');
@@ -270,9 +290,9 @@ function refreshDashboard() {
       var selFilter = document.getElementById('filterDashboard');
       if (selFilter && masterData.labels.length > 0) {
         var curr = selFilter.value;
-        selFilter.innerHTML = '<option value="ALL">🌐 Tampilkan Keseluruhan (Semua Cabang)</option>';
+        selFilter.innerHTML = '<option value="ALL">📍 Tampilkan Keseluruhan (Semua Cabang)</option>';
         masterData.labels.forEach(function(cbg) {
-          var nama = "📍 " + cbg;
+          var nama = "🏢 " + cbg;
           if(cbg==="MXM-KDI") nama += " (Kendari)";
           else if(cbg==="MXM-MKS") nama += " (Makassar)";
           else if(cbg==="MXM-PLU") nama += " (Palu)";
@@ -282,6 +302,9 @@ function refreshDashboard() {
           else if(cbg==="MXM-BHD") nama += " (Bahodopi)";
           else if(cbg==="MXM-BUB") nama += " (Bau-Bau)";
           else if(cbg==="MXM-BJM") nama += " (Banjarmasin)";
+          else if(cbg==="MXM-KLK") nama += " (Kolaka)";
+          else if(cbg==="MXM-MMJ") nama += " (Mamuju)";
+          else if(cbg==="MXM-PLK") nama += " (Palangkaraya)";
           selFilter.innerHTML += '<option value="'+cbg+'">'+nama+'</option>';
         });
         if (masterData.labels.indexOf(curr) !== -1 || curr === 'ALL') selFilter.value = curr;
@@ -333,12 +356,12 @@ window.memoriTabel = window.memoriTabel || {};
 function panggilJikaBelum(kunciMenu, fungsiPenarikData) {
   if (!window.memoriTabel[kunciMenu]) {
     window.memoriTabel[kunciMenu] = true; 
-    console.log("📥 MENARIK DATA DARI SERVER: " + kunciMenu);
+    console.log("ðŸ“¥ MENARIK DATA DARI SERVER: " + kunciMenu);
     if (typeof fungsiPenarikData === "function") {
       fungsiPenarikData();
     }
   } else {
-    console.log("⚡ MEMAKAI MEMORI CACHE: " + kunciMenu);
+    console.log("âš¡ MEMAKAI MEMORI CACHE: " + kunciMenu);
   }
 }
 
@@ -404,7 +427,7 @@ function renderTabelDashboard(filter) {
         var textStatus = (s.sisaBox <= 3.0) ? 'Waktunya Order' : 'Aman';
         
         tbodyStok.innerHTML += '<tr>' +
-          '<td><span class="badge bg-secondary">' + s.cabang + '</span></td>' +
+          '<td class="text-center">' + getBadgeCabang(s.cabang) + '</td>' +
           '<td>' + s.jenis + '</td>' +
           '<td><span class="fw-bold text-primary">' + s.sisaBox + ' Box</span><br><small class="text-muted">(' + s.sisaLembar + ' lbr)</small></td>' +
           '<td><span class="badge ' + classBadge + '">' + textStatus + '</span></td>' +
@@ -426,7 +449,7 @@ function renderTabelDashboard(filter) {
         if(filter === 'ALL' || row.cabang === filter) {
           tbodyHarian.innerHTML += '<tr>' +
             '<td>' + row.tanggal + '</td>' +
-            '<td><span class="badge bg-primary">' + row.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
             '<td>' + row.jenisFilm + '</td>' +
             '<td>' + row.p1 + '</td>' +
             '<td>' + row.p2 + '</td>' +
@@ -453,7 +476,7 @@ function renderTabelDashboard(filter) {
           var badgeClass = (row.status === "Pending") ? "badge-glow-warning" : "badge-glow-success";
           tbodyOrder.innerHTML += '<tr>' +
             '<td>' + row.tanggal + '</td>' +
-            '<td class="fw-bold">' + row.cabang + '</td>' +
+            '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
             '<td>' + row.kategori + '</td>' +
             '<td class="text-start">' + row.nama + '</td>' +
             '<td class="fw-bold text-primary">' + row.jumlah + '</td>' +
@@ -480,7 +503,7 @@ function renderTabelDashboard(filter) {
           if (row.kondisi.indexOf("Berat") !== -1) condColor = "badge-glow-danger";
           
           tbodyInv.innerHTML += '<tr>' +
-            '<td><span class="badge bg-dark">' + row.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
             '<td>' + row.kategori + '</td>' +
             '<td class="fw-bold text-start">' + row.merk + '</td>' +
             '<td>' + row.sn + '</td>' +
@@ -515,22 +538,34 @@ function renderTabelDashboard(filter) {
             statusColor = "badge-glow-danger";
           }
 
+          function parseDateIndo(tgl) {
+            var d = new Date(tgl);
+            if (!isNaN(d.getTime())) return d;
+            var parts = tgl.split(/[\/\-]/);
+            if (parts.length === 3) {
+              var y = parseInt(parts[2], 10);
+              if (y < 100) y += 2000;
+              return new Date(y, parts[1] - 1, parts[0]);
+            }
+            return new Date("invalid");
+          }
+
           var classKtunExp = "fw-bold text-success";
           if (row.tglExp && row.tglExp !== "-") {
-            var dateKtun = new Date(row.tglExp);
+            var dateKtun = parseDateIndo(row.tglExp);
             if (!isNaN(dateKtun.getTime()) && dateKtun < hariIni) classKtunExp = "text-danger fw-bold";
           }
 
           var classUkesExp = "fw-bold text-success";
           if (row.tglExpUkes && row.tglExpUkes !== "-") {
-            var dateUkes = new Date(row.tglExpUkes);
+            var dateUkes = parseDateIndo(row.tglExpUkes);
             if (!isNaN(dateUkes.getTime()) && dateUkes < hariIni) classUkesExp = "text-danger fw-bold";
           }
           
           var tombolLinkIzin = row.link && row.link !== "" ? `<a href="${row.link}" target="_blank" class="btn btn-sm btn-outline-warning fw-bold"><i class="fa-solid fa-folder-open"></i> Buka</a>` : "-";
           
           tbodyIjin.innerHTML += '<tr>' +
-            '<td class="fw-bold text-start">' + (row.cabang || "-") + '</td>' +
+            '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
             '<td>' + (row.ktun || "-") + '</td>' +
             '<td>' + (row.pesawat || "-") + '</td>' +
             '<td>' + (row.merk || "-") + '</td>' +
@@ -574,7 +609,7 @@ function renderTabelLogbook() {
       
       tbodyLogbook.innerHTML += '<tr>' +
         '<td class="fw-bold">' + row.bulan + '</td>' +
-        '<td><span class="badge bg-dark">' + row.cabang + '</span></td>' +
+        '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
         '<td class="fw-bold fs-6">' + row.pasien + '</td>' +
         '<td class="fw-bold fs-6 text-primary">' + row.ekspose + '</td>' +
         '<td class="' + warnaRasio + '">' + rasio + ' lbr/pasien</td>' +
@@ -849,7 +884,7 @@ function loadHarianData() {
         data.forEach(function(r) { 
           tb.innerHTML += '<tr>' +
             '<td>' + r.tanggal + '</td>' +
-            '<td><span class="badge bg-primary">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td class="fw-bold">' + r.jenis + '</td>' +
             '<td>' + r.p1 + '</td>' +
             '<td>' + r.p2 + '</td>' +
@@ -877,7 +912,7 @@ function loadLogbookPasienData() {
         data.forEach(function(r) { 
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold">' + r.bulan + '</td>' +
-            '<td><span class="badge bg-dark">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td>' + r.thoraks + '</td>' +
             '<td>' + r.musculo + '</td>' +
             '<td>' + r.dental + '</td>' +
@@ -908,7 +943,7 @@ function loadTldData() {
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.nama + '</td>' +
-            '<td><span class="badge bg-secondary">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td>' + r.periode + '</td>' +
             '<td>' + r.tahun + '</td>' +
             '<td class="fw-bold text-primary">' + r.dosis + ' mSv</td>' +
@@ -938,7 +973,7 @@ function loadMcuData() {
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.nama + '</td>' +
-            '<td><span class="badge bg-secondary">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td>' + r.tanggal + '</td>' +
             '<td>' + r.tempat + '</td>' +
             '<td><span class="badge ' + c + '">' + r.hasil + '</span></td>' +
@@ -968,7 +1003,7 @@ function loadInventoriData() {
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.aset + '</td>' +
-            '<td><span class="badge bg-dark">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td class="fw-bold">' + r.merk + '</td>' +
             '<td>' + r.sn + '</td>' +
             '<td>' + r.tahun + '</td>' +
@@ -997,7 +1032,7 @@ function loadServisData() {
           
           tb.innerHTML += '<tr>' +
             '<td>' + r.tanggal + '</td>' +
-            '<td><span class="badge bg-secondary">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td class="fw-bold">' + r.alat + '</td>' +
             '<td class="text-start"><small>' + r.gejala + '</small></td>' +
             '<td class="' + cu + '">' + r.urgensi + '</td>' +
@@ -1025,7 +1060,7 @@ function loadOrderData() {
           
           tb.innerHTML += '<tr>' +
             '<td>' + r.tanggal + '</td>' +
-            '<td><span class="badge bg-secondary">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td>' + r.kategori + '</td>' +
             '<td class="fw-bold text-start text-dark">' + r.nama + '</td>' +
             '<td class="text-primary fw-bold">' + r.jumlah + ' ' + r.satuan + '</td>' +
@@ -1052,7 +1087,7 @@ function loadStokData() {
         data.forEach(function(r) {
           tb.innerHTML += '<tr>' +
             '<td>' + r.tanggal + '</td>' +
-            '<td><span class="badge bg-dark">' + r.cabang + '</span></td>' +
+            '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
             '<td class="fw-bold">' + r.jenis + '</td>' +
             '<td>' + r.awal + '</td>' +
             '<td class="text-success fw-bold">+' + r.masuk + '</td>' +
@@ -1188,7 +1223,7 @@ function muatHistoriPengiriman() {
           <td>${row.tglKirim}</td>
           <td>${row.estimasi}</td>
           <td class="text-start">${row.ekspedisi}<br><span class="text-primary fw-bold">${row.resi}</span></td>
-          <td><span class="badge bg-secondary">${row.tujuan}</span></td>
+          <td class="text-center">${getBadgeCabang(row.tujuan)}</td>
           <td class="text-start">${row.detail}</td>
           <td>${badgeStatus}</td>
           <td>${tombolAksi}</td>
@@ -1245,7 +1280,7 @@ function muatDataSIP() {
         var tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="text-dark fw-bold">${row.nama}</td>
-          <td class="fw-bold"><span class="badge bg-secondary">${row.cabang}</span></td>
+          <td class="text-center">${getBadgeCabang(row.cabang)}</td>
           <td>${row.nomor}</td>
           <td>${row.terbit}</td>
           <td><span class="${row.status.toLowerCase().includes("aktif") ? 'text-success' : 'text-danger fw-bold'}">${row.expired}</span></td>
@@ -1336,10 +1371,30 @@ function loadPeralatanMCU() {
           </div>
         `;
 
+        var bgColor = "#e2e8f0";
+        var txtColor = "#fff";
+        var borderColor = "#334155";
+        var cUpper = cabang.toUpperCase().trim();
+        if (cUpper.includes("KDI")) { bgColor = "linear-gradient(135deg, #1e3a8a, #3b82f6)"; borderColor = "#1e3a8a"; }
+        else if (cUpper.includes("MKS")) { bgColor = "#ef4444"; borderColor = "#ef4444"; }
+        else if (cUpper.includes("BJM")) { bgColor = "#76b900"; borderColor = "#76b900"; }
+        else if (cUpper.includes("PLU")) { bgColor = "#eab308"; txtColor = "#000"; borderColor = "#ca8a04"; }
+        else if (cUpper.includes("GTO")) { bgColor = "#166534"; borderColor = "#166534"; }
+        else if (cUpper.includes("MND")) { bgColor = "#f97316"; borderColor = "#f97316"; }
+        else if (cUpper.includes("LWK")) { bgColor = "#ec4899"; borderColor = "#ec4899"; }
+        else if (cUpper.includes("BHD") || cUpper.includes("DIHD")) { bgColor = "#8b4513"; borderColor = "#8b4513"; }
+        else if (cUpper.includes("KLK")) { bgColor = "#334155"; borderColor = "#334155"; }
+        else if (cUpper.includes("MMJ")) { bgColor = "linear-gradient(135deg, #000000, #6b7280)"; borderColor = "#000000"; }
+        else if (cUpper.includes("PLK")) { bgColor = "linear-gradient(135deg, #0ea5e9, #10b981)"; borderColor = "#0ea5e9"; }
+        else if (cUpper.includes("BUB")) { bgColor = "#ea580c"; borderColor = "#ea580c"; }
+        else { bgColor = "#e2e8f0"; txtColor = "#334155"; borderColor = "#cbd5e1"; }
+
+        var borderStyle = "border: 2px solid " + borderColor + " !important;";
+
         var kartu = `
           <div class="col-md-4 col-sm-6 mb-4 d-flex">
-            <div class="card card-kaca ${borderCard} w-100 d-flex flex-column">
-              <div class="card-header text-primary fw-bold text-center py-2 fs-6 border-bottom" style="background-color: rgba(14, 165, 233, 0.12);">
+            <div class="card card-kaca shadow-sm w-100 d-flex flex-column" style="${borderStyle}">
+              <div class="card-header fw-bold text-center py-2 fs-6 border-bottom" style="background: ${bgColor}; color: ${txtColor};">
                 ${cabang}
               </div>
               <div class="card-body p-3 flex-grow-1">
@@ -1495,7 +1550,7 @@ function bukaRincianDash(tipe) {
           adaData = true;
           tb.innerHTML += `<tr>
             <td>${row.tanggal}</td>
-            <td><span class="badge bg-primary">${row.cabang}</span></td>
+            <td class="text-center">${getBadgeCabang(row.cabang)}</td>
             <td class="text-start"><span class="fw-bold">${row.nama}</span><br><span class="badge bg-warning text-dark mt-1">${row.jumlah}</span></td>
             <td class="text-start"><small>${row.ket || '-'}</small></td>
           </tr>`;
@@ -1524,7 +1579,7 @@ function bukaRincianDash(tipe) {
             var badgeUrgensi = (row.urgensi === 'Tinggi') ? 'badge bg-danger' : ((row.urgensi === 'Sedang') ? 'badge bg-warning text-dark' : 'badge bg-info');
             tb.innerHTML += `<tr>
               <td>${row.tanggal}</td>
-              <td><span class="badge bg-primary">${row.cabang}</span><br><small class="fw-bold">${row.alat}</small></td>
+              <td class="text-center">${getBadgeCabang(row.cabang)}<br><small class="fw-bold">${row.alat}</small></td>
               <td class="text-start"><small>${row.gejala}</small></td>
               <td><span class="${badgeUrgensi}">${row.urgensi}</span></td>
             </tr>`;
@@ -1539,3 +1594,4 @@ function bukaRincianDash(tipe) {
       });
   }
 }
+
