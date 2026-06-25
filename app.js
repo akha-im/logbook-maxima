@@ -1680,6 +1680,70 @@ function bukaModalUploadTLD(idTiket, cabang) {
   modal.show();
 }
 
+// ==========================================
+// MESIN KOMPRESOR FOTO OTOMATIS
+// ==========================================
+function compressImageAndGetBase64(file, maxSizeMB, callback) {
+  if (!file.type.startsWith('image/')) {
+    // Jika bukan gambar (misal PDF), cek ukuran langsung
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      callback({ error: "Maaf, ukuran dokumen (PDF/dll) melebihi " + maxSizeMB + " MB. Silakan kompres manual (misal pakai iLovePDF) sebelum diunggah." });
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      callback({ base64: e.target.result.split(',')[1], type: file.type });
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // Jika Gambar, jalankan kompresor kanvas
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      var maxWidth = 1200; // Maksimal lebar HD
+      var maxHeight = 1200;
+      var width = img.width;
+      var height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round(height *= maxWidth / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round(width *= maxHeight / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      var quality = 0.8;
+      var dataUrl = canvas.toDataURL('image/jpeg', quality);
+      var base64 = dataUrl.split(',')[1];
+      
+      // Susutkan terus kualitasnya sampai ukuran file perkiraan di bawah batas (misal 1MB = ~1.3 juta karakter base64)
+      while (base64.length * 0.75 > maxSizeMB * 1024 * 1024 && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+        base64 = dataUrl.split(',')[1];
+      }
+
+      callback({ base64: base64, type: 'image/jpeg' });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function prosesUploadTLD() {
   var id = document.getElementById("uploadTldIdTiket").value;
   var cabang = document.getElementById("uploadTldCabang").value;
@@ -1691,27 +1755,26 @@ function prosesUploadTLD() {
   }
   
   var file = fileInput.files[0];
-  if (file.size > 5 * 1024 * 1024) {
-    tampilkanPeringatan("Perhatian", "Ukuran file terlalu besar! Maksimal 5MB.");
-    return;
-  }
   
   var btnSave = document.querySelector("#modalUploadTLD .btn-warning");
   var oriText = btnSave.innerHTML;
-  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Mengupload...';
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Memproses & Upload...';
   btnSave.disabled = true;
-  
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var dataUrl = e.target.result;
-    var base64Data = dataUrl.split(',')[1];
-    
+
+  compressImageAndGetBase64(file, 1.0, function(result) {
+    if (result.error) {
+      tampilkanPeringatan("Perhatian", result.error);
+      btnSave.innerHTML = oriText;
+      btnSave.disabled = false;
+      return;
+    }
+
     var dataPayload = {
       idTiket: id,
       cabang: cabang,
-      filename: id + "_" + file.name,
-      mimeType: file.type,
-      base64Data: base64Data
+      filename: id + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
+      mimeType: result.type,
+      base64Data: result.base64
     };
     
     callAPI("POST", { action: "uploadArsipTLD", data: dataPayload })
@@ -1734,9 +1797,7 @@ function prosesUploadTLD() {
         btnSave.innerHTML = oriText;
         btnSave.disabled = false;
       });
-  };
-  
-  reader.readAsDataURL(file);
+  });
 }
 
 // ==========================================
@@ -1762,27 +1823,26 @@ function prosesUploadMCU() {
   }
   
   var file = fileInput.files[0];
-  if (file.size > 5 * 1024 * 1024) {
-    tampilkanPeringatan("Perhatian", "Ukuran file terlalu besar! Maksimal 5MB.");
-    return;
-  }
   
   var btnSave = document.querySelector("#modalUploadMCU .btn-danger");
   var oriText = btnSave.innerHTML;
-  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Mengupload...';
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Memproses & Upload...';
   btnSave.disabled = true;
   
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var dataUrl = e.target.result;
-    var base64Data = dataUrl.split(',')[1];
-    
+  compressImageAndGetBase64(file, 1.0, function(result) {
+    if (result.error) {
+      tampilkanPeringatan("Perhatian", result.error);
+      btnSave.innerHTML = oriText;
+      btnSave.disabled = false;
+      return;
+    }
+
     var dataPayload = {
       idTiket: id,
       cabang: cabang,
-      filename: id + "_" + file.name,
-      mimeType: file.type,
-      base64Data: base64Data
+      filename: id + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
+      mimeType: result.type,
+      base64Data: result.base64
     };
     
     callAPI("POST", { action: "uploadArsipMCU", data: dataPayload })
@@ -1805,8 +1865,6 @@ function prosesUploadMCU() {
         btnSave.innerHTML = oriText;
         btnSave.disabled = false;
       });
-  };
-  
-  reader.readAsDataURL(file);
+  });
 }
 
