@@ -1985,9 +1985,9 @@ function prosesUploadInventori() {
   }
 
   if (file) {
-    compressImageAndGetBase64(file, 0.82, function(err, result) {
-      if (err) {
-        tampilkanPeringatan("Gagal", err);
+    compressImageAndGetBase64(file, 1.0, function(result) {
+      if (result.error) {
+        tampilkanPeringatan("Gagal", result.error);
         btnSave.innerHTML = oriText;
         btnSave.disabled = false;
         return;
