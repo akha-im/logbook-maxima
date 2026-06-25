@@ -7,7 +7,7 @@
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbxYTXWNcog5Fb5E9yRJ9bhLCo7MM7k5o4f9d0eg6UsvQkoKBYHaRu6AmO0U0d4TZJyp/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyeRhMxHFomqJGGZ1pozkSkw8Ybs2d2oor0eWa5_S3nOX7xfZfr9w0CBbB61Glf2wsY/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -799,7 +799,8 @@ function submitInventori(e) {
     merk: document.getElementById('merkAset').value, 
     sn: document.getElementById('snAset').value, 
     tahun: document.getElementById('tahunAset').value, 
-    kondisi: document.getElementById('kondisiAset').value 
+    kondisi: document.getElementById('kondisiAset').value,
+    keterangan: document.getElementById('keteranganAsetForm') ? document.getElementById('keteranganAsetForm').value : ""
   };
   
   callAPI("simpanInventori", { data: data })
@@ -1004,18 +1005,30 @@ function loadMcuData() {
 function loadInventoriData() {
   var tb = document.querySelector('#tabelMiniInventori tbody'); 
   if(!tb) return;
-  tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
   
   callAPI("GET", { action: "getInventori", cabang: getCabFilter() })
     .then(function(data) {
       if (data.length === 0) {
-        tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Database aset kosong.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Database aset kosong.</td></tr>';
       } else {
         tb.innerHTML = '';
         data.forEach(function(r) { 
           var c = "badge-glow-success"; 
           if(r.kondisi.indexOf("Ringan") !== -1) { c = "badge-glow-warning"; }
           if(r.kondisi.indexOf("Berat") !== -1) { c = "badge-glow-danger"; }
+
+          var catatanText = "-";
+          if (r.keterangan && r.keterangan.trim() !== "") {
+             catatanText = `<div class="text-start text-muted" style="font-size: 0.75rem; max-width: 200px; white-space: pre-wrap; font-style: italic;">"${r.keterangan}"</div>`;
+          }
+
+          var aksiBtn = "";
+          if (r.linkArsip) {
+            aksiBtn = `<a href="${r.linkArsip}" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</a>`;
+          } else {
+            aksiBtn = `<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadInventori('${r.id}', '${r.cabang}')"><i class="fa-solid fa-upload"></i> Upload</button>`;
+          }
           
           tb.innerHTML += '<tr>' +
             '<td class="fw-bold text-start text-dark">' + r.aset + '</td>' +
@@ -1024,11 +1037,13 @@ function loadInventoriData() {
             '<td>' + r.sn + '</td>' +
             '<td>' + r.tahun + '</td>' +
             '<td><span class="badge ' + c + '">' + r.kondisi + '</span></td>' +
+            '<td class="text-start">' + catatanText + '</td>' +
+            '<td>' + aksiBtn + '</td>' +
           '</tr>'; 
         });
       }
     })
-    .catch(function(e) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
+    .catch(function(e) { tb.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
 }
 
 function loadServisData() {
@@ -1208,29 +1223,40 @@ function simpanPengiriman() {
 
 function muatHistoriPengiriman() {
   var tbody = document.getElementById("tabelHistoriPengiriman").querySelector('tbody') || document.getElementById("tabelHistoriPengiriman");
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Mengambil data pengiriman...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Mengambil data pengiriman...</td></tr>';
 
   callAPI("GET", { action: "getHistoriPengiriman", role: currentRole, cabang: currentCabang })
     .then(function(data) {
-      tbody.innerHTML = "";
-      
       if ($.fn.DataTable.isDataTable('#tabelHistoriPengiriman')) {
-        $('#tabelHistoriPengiriman').DataTable().destroy();
+        $('#tabelHistoriPengiriman').DataTable().clear().destroy();
       }
       
+      var tbodyUpdate = document.getElementById("tabelHistoriPengiriman").querySelector('tbody');
+      if(tbodyUpdate) tbodyUpdate.innerHTML = "";
+      else tbody.innerHTML = "";
+      
+      var finalTbody = tbodyUpdate || tbody;
+      
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada data pengantar logistik untuk cabang ini.</td></tr>';
+        finalTbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada data pengantar logistik untuk cabang ini.</td></tr>';
         return;
       }
 
       data.forEach(function(row) {
+        var catatanHTML = "-";
+        if (row.catatan && row.catatan.trim() !== "") {
+          var pjg = row.catatan.length;
+          var ukuranHuruf = pjg > 50 ? "0.75rem" : "0.85rem"; // Mengecil otomatis jika panjang
+          catatanHTML = `<div class="text-start text-muted" style="font-size: ${ukuranHuruf}; max-width: 250px; white-space: pre-wrap; font-style: italic;">"${row.catatan}"</div>`;
+        }
+
         var badgeStatus = row.status === "DITERIMA" 
           ? '<span class="badge badge-glow-success"><i class="fa-solid fa-check-double"></i> DITERIMA</span>' 
           : '<span class="badge badge-glow-warning"><i class="fa-solid fa-truck-fast"></i> DIKIRIM</span>';
 
         var tombolAksi = "-";
         if (currentRole === "Cabang" && row.status !== "DITERIMA") {
-          tombolAksi = `<button class="btn btn-sm btn-success fw-bold shadow-sm" onclick="terimaBarang(${row.rowIdx})"><i class="fa-solid fa-clipboard-check"></i> Terima</button>`;
+          tombolAksi = `<button class="btn btn-sm btn-success fw-bold shadow-sm" onclick="bukaModalCatatanPengiriman(${row.rowIdx})"><i class="fa-solid fa-clipboard-check"></i> Lapor Terima</button>`;
         } else if (row.status === "DITERIMA") {
           tombolAksi = `<span class="text-success fw-bold" style="font-size:0.8rem;">Selesai</span>`;
         }
@@ -1243,9 +1269,10 @@ function muatHistoriPengiriman() {
           <td class="text-center">${getBadgeCabang(row.tujuan)}</td>
           <td class="text-start">${row.detail}</td>
           <td>${badgeStatus}</td>
+          <td class="text-start">${catatanHTML}</td>
           <td>${tombolAksi}</td>
         `;
-        tbody.appendChild(tr);
+        finalTbody.appendChild(tr);
       });
 
       $('#tabelHistoriPengiriman').DataTable({
@@ -1256,7 +1283,7 @@ function muatHistoriPengiriman() {
       });
 
     })
-    .catch(function(e) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal terhubung ke database.</td></tr>'; });
+    .catch(function(e) { tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Gagal terhubung ke database.</td></tr>'; });
 }
 
 function terimaBarang(barisKe) {
@@ -1268,6 +1295,43 @@ function terimaBarang(barisKe) {
       muatHistoriPengiriman(); 
     })
     .catch(function(e) { alert("Gagal mengupdate status penerimaan."); });
+}
+
+function bukaModalCatatanPengiriman(rowIdx) {
+  document.getElementById("catatanPengirimanRowIdx").value = rowIdx;
+  document.getElementById("teksCatatanPengiriman").value = "";
+  var modal = new bootstrap.Modal(document.getElementById('modalCatatanPengiriman'));
+  modal.show();
+}
+
+function simpanCatatanPengiriman() {
+  var rowIdx = document.getElementById("catatanPengirimanRowIdx").value;
+  var catatan = document.getElementById("teksCatatanPengiriman").value;
+  var btnSave = document.querySelector("#modalCatatanPengiriman .btn-success");
+  var oriText = btnSave.innerHTML;
+  
+  if(catatan.trim() === "") {
+    tampilkanPeringatan("Perhatian", "Harap tuliskan catatan penerimaan terlebih dahulu!");
+    return;
+  }
+  
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...';
+  btnSave.disabled = true;
+  
+  callAPI("POST", { action: "konfirmasiTerimaBarangDenganCatatan", data: { rowIdx: rowIdx, catatan: catatan } })
+    .then(function(sukses) {
+      var modalEl = document.getElementById('modalCatatanPengiriman');
+      var modal = bootstrap.Modal.getInstance(modalEl);
+      if(modal) modal.hide();
+      
+      tampilkanPeringatan("Berhasil", "Data pengiriman berhasil dikonfirmasi dan laporan catatan telah tersimpan!");
+      muatHistoriPengiriman(); 
+    })
+    .catch(function(e) { tampilkanPeringatan("Gagal", "Gagal menyimpan catatan."); })
+    .finally(function() {
+      btnSave.innerHTML = oriText;
+      btnSave.disabled = false;
+    });
 }
 
 // =========================================================================
@@ -1870,3 +1934,75 @@ function prosesUploadMCU() {
   });
 }
 
+
+// ==========================================
+// FUNGSI UPLOAD FOTO INVENTORI
+// ==========================================
+function bukaModalUploadInventori(idAsset, cabang) {
+  document.getElementById("uploadInventoriIdAsset").value = idAsset;
+  document.getElementById("uploadInventoriCabang").value = cabang;
+  document.getElementById("inputFileInventori").value = "";
+  var modal = new bootstrap.Modal(document.getElementById('modalUploadInventori'));
+  modal.show();
+}
+
+function prosesUploadInventori() {
+  var idAsset = document.getElementById("uploadInventoriIdAsset").value;
+  var cabang = document.getElementById("uploadInventoriCabang").value;
+  var fileInput = document.getElementById("inputFileInventori");
+  var file = fileInput.files[0];
+  
+  if (!file) {
+    tampilkanPeringatan("Peringatan", "Harap pilih foto aset terlebih dahulu!");
+    return;
+  }
+  
+  var btnSave = document.querySelector("#modalUploadInventori .btn-warning");
+  var oriText = btnSave.innerHTML;
+  
+  btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Mengupload...';
+  btnSave.disabled = true;
+
+  function handleResponseInventori(res) {
+    if(res && res.success) {
+      var modalEl = document.getElementById('modalUploadInventori');
+      var modal = bootstrap.Modal.getInstance(modalEl);
+      if(modal) modal.hide();
+      
+      loadInventoriData();
+      tampilkanPeringatan("Berhasil", "Data keterangan/foto inventori berhasil disimpan!");
+    } else {
+      tampilkanPeringatan("Gagal", res.error || "Gagal menyimpan data.");
+    }
+    btnSave.innerHTML = oriText;
+    btnSave.disabled = false;
+  }
+
+  function handleErrorInventori(err) {
+    tampilkanPeringatan("Error", "Terjadi kesalahan jaringan.");
+    btnSave.innerHTML = oriText;
+    btnSave.disabled = false;
+  }
+
+  if (file) {
+    compressImageAndGetBase64(file, 0.82, function(err, result) {
+      if (err) {
+        tampilkanPeringatan("Gagal", err);
+        btnSave.innerHTML = oriText;
+        btnSave.disabled = false;
+        return;
+      }
+      
+      callAPI("POST", {
+        action: "uploadFotoInventori",
+        data: {
+          idAsset: idAsset,
+          cabang: cabang,
+          filename: idAsset + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
+          mimeType: result.type,
+          base64Data: result.base64
+        }
+      }).then(handleResponseInventori).catch(handleErrorInventori);
+    });
+  }
+}

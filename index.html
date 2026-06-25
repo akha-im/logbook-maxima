@@ -807,17 +807,21 @@
                 </div>
 
                 <div class="row mb-4">
-                  <div class="col-md-6 mb-2">
+                  <div class="col-md-4 mb-2">
                     <label class="form-label fw-bold">Tahun Pengadaan</label>
                     <input type="number" class="form-control" id="tahunAset" min="2000" max="2100" required>
                   </div>
-                  <div class="col-md-6 mb-2">
+                  <div class="col-md-4 mb-2">
                     <label class="form-label fw-bold">Kondisi Saat Ini</label>
                     <select class="form-select" id="kondisiAset" required>
                       <option value="Baik" class="text-success">Baik (Dapat digunakan penuh)</option>
                       <option value="Rusak Ringan" class="text-warning">Rusak Ringan (Ada kendala kecil)</option>
                       <option value="Rusak Berat" class="text-danger">Rusak Berat (Mati total)</option>
                     </select>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label class="form-label fw-bold">Catatan / Keterangan Alat</label>
+                    <textarea class="form-control" id="keteranganAsetForm" rows="1" placeholder="Opsional..."></textarea>
                   </div>
                 </div>
 
@@ -840,10 +844,12 @@
                       <th>Nomor Seri (S/N)</th>
                       <th>Tahun</th>
                       <th>Kondisi</th>
+                      <th>Keterangan / Laporan</th>
+                      <th>Foto Arsip</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                    <tr><td colspan="8" class="text-center text-muted py-3">Memuat data histori...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1075,6 +1081,7 @@
                       <th>Tujuan</th>
                       <th>Detail Barang</th>
                       <th>Status Terkini</th>
+                      <th>Catatan</th>
                       <th>Aksi (Konfirmasi)</th>
                     </tr>
                   </thead>
@@ -1273,6 +1280,7 @@
                       <th>Tujuan</th>
                       <th>Detail Barang</th>
                       <th>Status Terkini</th>
+                      <th>Catatan</th>
                       <th>Aksi (Konfirmasi)</th>
                     </tr>
                   </thead>
@@ -1465,6 +1473,60 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       [TAMPILAN-800] MODAL UPLOAD FOTO INVENTORI
+       ========================================================================= -->
+  <div class="modal fade" id="modalUploadInventori" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header text-white border-0" style="background-color: #f59e0b;">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-camera me-2"></i> Upload Foto Alat & Keterangan</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 bg-light text-center">
+          <input type="hidden" id="uploadInventoriIdAsset">
+          <input type="hidden" id="uploadInventoriCabang">
+          
+          <div class="mb-3">
+            <i class="fa-solid fa-camera text-warning fa-3x mb-3"></i>
+            <p class="text-muted fw-bold mb-3">Pilih foto fisik aset/alat tersebut. (Maksimal 1 MB. Foto akan dikompres otomatis)</p>
+            <input class="form-control" type="file" id="inputFileInventori" accept="image/*">
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-warning btn-sm px-4 fw-bold text-white" onclick="prosesUploadInventori()"><i class="fa-solid fa-upload me-1"></i> Upload & Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       [TAMPILAN-700] MODAL CATATAN PENGIRIMAN
+       ========================================================================= -->
+  <div class="modal fade" id="modalCatatanPengiriman" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header bg-success text-white border-0">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-box-open me-2"></i> Laporan Penerimaan Logistik</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 bg-light text-start">
+          <input type="hidden" id="catatanPengirimanRowIdx">
+          <div class="mb-3">
+            <label class="form-label fw-bold text-secondary">Catatan / Kondisi Barang</label>
+            <textarea class="form-control" id="teksCatatanPengiriman" rows="4" placeholder="Contoh: Barang tiba dengan aman, segel utuh, jumlah sesuai resi..."></textarea>
+            <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Catatan ini akan tersimpan di Kolom I dalam database pengiriman.</small>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary btn-sm px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-success btn-sm px-4 fw-bold" onclick="simpanCatatanPengiriman()"><i class="fa-solid fa-check-double me-1"></i> Terima & Simpan Catatan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Javascript Library -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1473,7 +1535,7 @@
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
   
   <!-- Main Logic -->
-  <script src="app.js?v=2.5"></script>
+  <script src="app.js?v=2.6"></script>
 </body>
 </html>
 

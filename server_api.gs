@@ -126,6 +126,9 @@ function doPost(e) {
       case "konfirmasiTerimaBarang":
         result = { success: konfirmasiTerimaBarang(postData.rowIdx) };
         break;
+      case "konfirmasiTerimaBarangDenganCatatan":
+        result = { success: konfirmasiTerimaBarangDenganCatatan(data.rowIdx, data.catatan) };
+        break;
       case "updateServisReport":
         result = { success: updateServisReport(data) };
         break;
@@ -134,6 +137,9 @@ function doPost(e) {
         break;
       case "uploadArsipMCU":
         result = uploadArsipMCU(data);
+        break;
+      case "uploadFotoInventori":
+        result = uploadFotoInventori(data);
         break;
       default:
         return respondError("Aksi POST tidak dikenali.");
@@ -342,7 +348,8 @@ function simpanInventori(data) {
     data.merk, 
     data.sn, 
     data.tahun, 
-    data.kondisi
+    data.kondisi,
+    data.keterangan || ""
   ]);
   return true;
 }
@@ -398,6 +405,13 @@ function simpanDataPengiriman(data) {
 function konfirmasiTerimaBarang(rowIdx) {
   var sheet = getSheet("STATUS_PENGIRIMAN");
   sheet.getRange(rowIdx, 8).setValue("DITERIMA");
+  return true;
+}
+
+function konfirmasiTerimaBarangDenganCatatan(rowIdx, catatan) {
+  var sheet = getSheet("STATUS_PENGIRIMAN");
+  sheet.getRange(rowIdx, 8).setValue("DITERIMA"); // Kolom H (ke-8)
+  sheet.getRange(rowIdx, 9).setValue(catatan);    // Kolom I (ke-9) untuk catatan
   return true;
 }
 
@@ -882,6 +896,7 @@ function getHistoriPengiriman(userRole, userCabang) {
           tujuan: tujuan,
           detail: baris[6],
           status: status,
+          catatan: baris[8] || "",
           rowIdx: i + 1 
         });
       }
@@ -1066,6 +1081,50 @@ function uploadArsipMCU(data) {
       }
     }
     return { success: false, error: "Data MCU tidak ditemukan di Spreadsheet." };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function uploadFotoInventori(data) {
+  try {
+    var folderUtamaId = "13uYVFDn20AjOe5EqvqgBq4zrNRo7wlMs"; // Folder Inventori dari User
+    var folderUtama = DriveApp.getFolderById(folderUtamaId);
+    
+    // Cari atau buat subfolder cabang
+    var subfolders = folderUtama.getFoldersByName(data.cabang);
+    var folderCabang;
+    if (subfolders.hasNext()) {
+      folderCabang = subfolders.next();
+    } else {
+      folderCabang = folderUtama.createFolder(data.cabang);
+    }
+    
+    var fileUrl = "";
+    if (data.base64Data && data.base64Data.trim() !== "") {
+      var decodedData = Utilities.base64Decode(data.base64Data);
+      var blob = Utilities.newBlob(decodedData, data.mimeType, data.filename);
+      var file = folderCabang.createFile(blob);
+      fileUrl = file.getUrl();
+    }
+    
+    var sheet = getSheet("Inventori_Asset_Radiologi");
+    var allData = sheet.getDataRange().getValues();
+    
+    // Cari baris aset berdasarkan ID (Index 0)
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][0] === data.idAsset) { 
+        if (data.keterangan !== undefined && data.keterangan !== null && data.keterangan.trim() !== "") {
+           sheet.getRange(i + 1, 8).setValue(data.keterangan); // Kolom H (ke-8)
+        }
+        if (fileUrl !== "") {
+           sheet.getRange(i + 1, 9).setValue(fileUrl); // Kolom I (ke-9)
+        }
+        return { success: true, url: fileUrl };
+      }
+    }
+    
+    return { success: false, error: "Data aset tidak ditemukan" };
   } catch(e) {
     return { success: false, error: e.message };
   }
