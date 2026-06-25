@@ -1705,8 +1705,8 @@ function compressImageAndGetBase64(file, maxSizeMB, callback) {
     img.onload = function() {
       var canvas = document.createElement('canvas');
       var ctx = canvas.getContext('2d');
-      var maxWidth = 1200; // Maksimal lebar HD
-      var maxHeight = 1200;
+      var maxWidth = 1920; // Diperbesar ke resolusi Full HD agar lebih tajam
+      var maxHeight = 1920;
       var width = img.width;
       var height = img.height;
 
@@ -1726,15 +1726,17 @@ function compressImageAndGetBase64(file, maxSizeMB, callback) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      var quality = 0.8;
+      var quality = 0.95; // Mulai dari kualitas nyaris sempurna (95%)
       var dataUrl = canvas.toDataURL('image/jpeg', quality);
       var base64 = dataUrl.split(',')[1];
+      var approxSizeKB = (base64.length * 0.75) / 1024;
       
-      // Susutkan terus kualitasnya sampai ukuran file perkiraan di bawah batas (misal 1MB = ~1.3 juta karakter base64)
-      while (base64.length * 0.75 > maxSizeMB * 1024 * 1024 && quality > 0.3) {
-        quality -= 0.1;
+      // Susutkan terus kualitasnya perlahan HANYA JIKA ukuran masih di atas 1000 KB (1 MB)
+      while (approxSizeKB > 1000 && quality > 0.4) {
+        quality -= 0.05; // Turun perlahan 5%
         dataUrl = canvas.toDataURL('image/jpeg', quality);
         base64 = dataUrl.split(',')[1];
+        approxSizeKB = (base64.length * 0.75) / 1024;
       }
 
       callback({ base64: base64, type: 'image/jpeg' });
