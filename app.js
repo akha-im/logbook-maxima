@@ -7,7 +7,7 @@
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbyeRhMxHFomqJGGZ1pozkSkw8Ybs2d2oor0eWa5_S3nOX7xfZfr9w0CBbB61Glf2wsY/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwr_F3sIngxdcukaFsX87wcpcEaOIChKKCftveF2hIYQYryfkDvx3WedIByg_NMoE3V/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -1790,7 +1790,7 @@ function compressImageAndGetBase64(file, maxSizeMB, callback) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      var quality = 0.82; // Setelan agresif hemat memori (82%)
+      var quality = 0.84; // Setelan agresif hemat memori (84%)
       var dataUrl = canvas.toDataURL('image/jpeg', quality);
       var base64 = dataUrl.split(',')[1];
       var approxSizeKB = (base64.length * 0.75) / 1024;
