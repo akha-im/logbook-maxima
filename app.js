@@ -414,6 +414,7 @@ function logout() {
   document.getElementById('formLogin').reset();
   currentCabang = ""; 
   currentRole = "";
+  window.hasShownPeringatan = false;
 }
 
 // =========================================================================
@@ -2098,8 +2099,11 @@ function cekPeringatanSistem(dataStok, dataIjin) {
 
   if (adaPeringatan) {
     document.getElementById("isiPeringatan").innerHTML = pesanPeringatan;
-    var modalAlert = new bootstrap.Modal(document.getElementById('modalPeringatan'));
-    modalAlert.show();
+    if (!window.hasShownPeringatan) {
+      var modalAlert = new bootstrap.Modal(document.getElementById('modalPeringatan'));
+      modalAlert.show();
+      window.hasShownPeringatan = true;
+    }
   }
 }
 
