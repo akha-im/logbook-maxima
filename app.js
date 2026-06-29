@@ -774,7 +774,7 @@ function renderTabelDashboard(filter) {
 
           var aksiBtn = "";
           if (row.linkArsip) {
-            aksiBtn = `<a href="${row.linkArsip}" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</a>`;
+            aksiBtn = `<button type="button" onclick="bukaFoto('${row.linkArsip}')" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</button>`;
           } else {
             aksiBtn = `<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadInventori('${row.id}', '${row.cabang}')"><i class="fa-solid fa-upload"></i> Upload</button>`;
           }
@@ -1339,7 +1339,7 @@ function loadTldData() {
           
           var aksiBtn = "";
           if (r.linkArsip) {
-            aksiBtn = '<a href="' + r.linkArsip + '" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat</a>';
+            aksiBtn = `<button type="button" onclick="bukaFoto('${r.linkArsip}')" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat Foto</button>`;
           } else {
             aksiBtn = '<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadTLD(\'' + r.id + '\', \'' + r.cabang + '\')"><i class="fa-solid fa-upload"></i> Upload</button>';
           }
@@ -1377,7 +1377,7 @@ function loadMcuData() {
           
           var aksiBtn = "";
           if (r.linkArsip) {
-            aksiBtn = '<a href="' + r.linkArsip + '" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat</a>';
+            aksiBtn = `<button type="button" onclick="bukaFoto('${r.linkArsip}')" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-eye"></i> Lihat Foto</button>`;
           } else {
             aksiBtn = '<button class="btn btn-sm btn-outline-danger text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadMCU(\'' + r.id + '\', \'' + r.cabang + '\')"><i class="fa-solid fa-upload"></i> Upload</button>';
           }
@@ -1420,7 +1420,7 @@ function loadInventoriData() {
 
           var aksiBtn = "";
           if (r.linkArsip) {
-            aksiBtn = `<a href="${r.linkArsip}" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</a>`;
+            aksiBtn = `<button type="button" onclick="bukaFoto('${r.linkArsip}')" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</button>`;
           } else {
             aksiBtn = `<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadInventori('${r.id}', '${r.cabang}')"><i class="fa-solid fa-upload"></i> Upload</button>`;
           }
@@ -2538,3 +2538,23 @@ function prosesUploadInventori() {
     });
   }
 }
+
+// Fungsi untuk membuka foto arsip di modal (popup)
+window.bukaFoto = function(url) {
+    if (!url || url === '-' || url === '') return;
+    
+    // Gunakan iframe preview untuk Google Drive agar lebih stabil
+    var iframeUrl = url;
+    if (url.includes('drive.google.com')) {
+        if (url.includes('/view')) {
+            iframeUrl = url.replace(/\/view.*$/, '/preview');
+        } else if (url.includes('export=view')) {
+            iframeUrl = url.replace('export=view', 'export=preview');
+        }
+    }
+
+    document.getElementById('imgViewer').src = iframeUrl;
+    var modalEl = document.getElementById('modalLihatFoto');
+    var myModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    myModal.show();
+};
