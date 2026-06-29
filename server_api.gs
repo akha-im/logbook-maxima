@@ -72,6 +72,12 @@ function doGet(e) {
       case "getHistoriPengiriman":
         responseData = getHistoriPengiriman(role, cabang);
         break;
+      case "syncLogbook":
+        responseData = syncLogbookCabang();
+        break;
+      case "getLogbookDashboard":
+        responseData = getLogbookDashboard();
+        break;
       default:
         return respondError("Aksi GET tidak dikenali.");
     }
@@ -422,11 +428,13 @@ function konfirmasiTerimaBarangDenganCatatan(rowIdx, catatan) {
 function getDashboardData() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = {
-    ringkasan: { pasien: 0, film: 0, order: 0, cr: 0 },
+    ringkasan: { pasien: 0, film: 0, rijek: 0, order: 0, cr: 0 },
     chart: { labels: [], pasien: [], film: [] },
     cabangList: ['MXM-KDI', 'MXM-MKS', 'MXM-PLU', 'MXM-GTO', 'MXM-MND', 'MXM-LWK', 'MXM-BHD', 'MXM-BUB', 'MXM-BJM'],
     tabelData: { harian: [], order: [], inventori: [], perijinan: [], logbook: [] },
-    stokRendah: []
+    stokRendah: [],
+    radarAudit: { alarm1: [], alarm2: [] },
+    rejectDetail: { byFilm: {}, byCabang: {}, cross: {} }
   };
 
   data.chart.labels = data.cabangList;
@@ -450,11 +458,27 @@ function getDashboardData() {
           var p1 = Number(row[4]) || 0;
           var p2 = Number(row[5]) || 0;
           var terpakai = Number(row[6]) || 0;
+          var rijek = Number(row[7]) || 0;
+          var cabang = String(row[2] || "").trim();
+          var jenisFilm = String(row[3] || "").trim();
           
           data.ringkasan.pasien += (p1 + p2);
           data.ringkasan.film += terpakai;
+          data.ringkasan.rijek += rijek;
+          
+          if(rijek > 0) {
+            if(!data.rejectDetail.byFilm[jenisFilm]) data.rejectDetail.byFilm[jenisFilm] = 0;
+            data.rejectDetail.byFilm[jenisFilm] += rijek;
+            
+            if(!data.rejectDetail.byCabang[cabang]) data.rejectDetail.byCabang[cabang] = 0;
+            data.rejectDetail.byCabang[cabang] += rijek;
+            
+            if(!data.rejectDetail.cross[cabang]) data.rejectDetail.cross[cabang] = {};
+            if(!data.rejectDetail.cross[cabang][jenisFilm]) data.rejectDetail.cross[cabang][jenisFilm] = 0;
+            data.rejectDetail.cross[cabang][jenisFilm] += rijek;
+          }
 
-          var idx = data.cabangList.indexOf(row[2]);
+          var idx = data.cabangList.indexOf(cabang);
           if(idx !== -1) {
             data.chart.pasien[idx] += (p1 + p2);
             data.chart.film[idx] += terpakai;
@@ -507,12 +531,15 @@ function getDashboardData() {
         var rowInv = valsInv[k];
         if(data.tabelData.inventori.length < 50) {
           data.tabelData.inventori.push({
+            id: String(rowInv[0] || ""),
             cabang: rowInv[1] || "-", 
             kategori: rowInv[2] || "-", 
             merk: rowInv[3] || "-",
             sn: rowInv[4] || "-", 
             tahun: rowInv[5] || "-", 
-            kondisi: rowInv[6] || "-"
+            kondisi: rowInv[6] || "-",
+            keterangan: String(rowInv[7] || ""),
+            linkArsip: String(rowInv[8] || "")
           });
         }
       }
@@ -609,6 +636,47 @@ function getDashboardData() {
           pasien: totalPasien, 
           ekspose: totalEkspose 
         });
+      }
+    }
+  } catch(e) {}
+
+  // 6. Radar Audit Pusat (Alarm 1 & Alarm 2)
+  try {
+    var sheetAudit = ss.getSheetByName("Radar_Audit_Pusat");
+    if(sheetAudit && sheetAudit.getLastRow() > 2) {
+      var valsAudit = sheetAudit.getRange(3, 1, sheetAudit.getLastRow() - 2, 20).getDisplayValues();
+      
+      for(var i = 0; i < valsAudit.length; i++) {
+        var row = valsAudit[i];
+        
+        // Cek Alarm 1
+        var status1 = String(row[8] || "").trim(); // STATUS KESIMPULAN (Kolom I)
+        if(status1 !== "" && status1 !== "AMAN") {
+          data.radarAudit.alarm1.push({
+            cabang: row[1],          // B
+            jenisFilm: row[2],       // C
+            harianDipakai: row[3],   // D
+            harianRusak: row[4],     // E
+            stokKeluar: row[5],      // F
+            selisih: row[6],         // G
+            persenReject: row[7],    // H
+            status: status1          // I
+          });
+        }
+        
+        // Cek Alarm 2 (Dimulai dari Kolom K / Index 10)
+        var status2 = String(row[17] || "").trim(); // ANALISIS RASIO (Kolom R)
+        if(status2 !== "" && status2 !== "AMAN" && row[11] !== "") { 
+          data.radarAudit.alarm2.push({
+            cabang: row[11],         // L
+            logbookPasien: row[12],  // M
+            harianPasien: row[13],   // N
+            selisihPasien: row[14],  // O
+            harianFilm: row[15],     // P
+            rasioFilm: row[16],      // Q
+            status: status2          // R
+          });
+        }
       }
     }
   } catch(e) {}
@@ -745,12 +813,15 @@ function getInventoriMiniData(cabangFilter) {
     for (var i = data.length - 1; i > 0; i--) {
       if (cabangFilter === "ALL" || data[i][1] === cabangFilter) {
         res.push({ 
+          id: data[i][0],
           cabang: data[i][1], 
           aset: data[i][2], 
           merk: data[i][3], 
           sn: data[i][4], 
           tahun: data[i][5], 
-          kondisi: data[i][6] 
+          kondisi: data[i][6],
+          keterangan: data[i][7] ? data[i][7] : "",
+          linkArsip: data[i][8] ? data[i][8] : ""
         });
       }
       if (res.length >= 20) break;
@@ -1113,7 +1184,7 @@ function uploadFotoInventori(data) {
     
     // Cari baris aset berdasarkan ID (Index 0)
     for (var i = 1; i < allData.length; i++) {
-      if (allData[i][0] === data.idAsset) { 
+      if (allData[i][0] == data.idAsset) { 
         if (data.keterangan !== undefined && data.keterangan !== null && data.keterangan.trim() !== "") {
            sheet.getRange(i + 1, 8).setValue(data.keterangan); // Kolom H (ke-8)
         }
@@ -1128,4 +1199,307 @@ function uploadFotoInventori(data) {
   } catch(e) {
     return { success: false, error: e.message };
   }
+}
+
+// =========================================================================
+// [MESIN-700] SINKRONISASI LOGBOOK CABANG
+// =========================================================================
+
+function getBranchLinks() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var links = []; 
+  for(var i=0; i<sheets.length; i++) {
+    var sheet = sheets[i];
+    var data = sheet.getDataRange().getValues();
+    for(var r=0; r<data.length; r++) {
+      for(var c=0; c<data[r].length; c++) {
+        var val = String(data[r][c]);
+        if(val.indexOf("docs.google.com/spreadsheets") > -1) {
+          for(var k=0; k<data.length; k++) {
+             var possibleUrl = String(data[k][c]);
+             if(possibleUrl.indexOf("http") > -1) {
+                var cabang = String(data[k][0]).trim();
+                if(cabang && cabang.toLowerCase() !== "cabang" && cabang.toLowerCase() !== "nama cabang") {
+                   links.push({cabang: cabang, url: possibleUrl});
+                }
+             }
+          }
+          return links;
+        }
+      }
+    }
+  }
+  return links;
+}
+
+function syncLogbookCabang() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var links = getBranchLinks();
+  if(links.length === 0) return {status: "error", message: "Tidak menemukan link spreadsheet logbook cabang di database."};
+  
+  var syncSheet = ss.getSheetByName("Data_Sync_Logbook");
+  if(!syncSheet) {
+    syncSheet = ss.insertSheet("Data_Sync_Logbook");
+    syncSheet.appendRow(["Cabang", "Last Sync", "Data JSON"]);
+  }
+  
+  var existingData = syncSheet.getDataRange().getValues();
+  var rowMap = {};
+  for(var i=1; i<existingData.length; i++) {
+    rowMap[existingData[i][0]] = i + 1;
+  }
+  
+  var results = [];
+  
+  for(var i=0; i<links.length; i++) {
+    var cabang = links[i].cabang;
+    var url = links[i].url;
+    
+    try {
+      var targetSs = SpreadsheetApp.openByUrl(url);
+      
+      // 1. Ekstrak Rekap Pasien (STATE MACHINE)
+      var rekapLogSheet = targetSs.getSheetByName("REKAP LOG RADIOLOGI") || targetSs.getSheetByName("REKAP_LOG_RADIOLOGI");
+      var rekapPasienData = rekapLogSheet ? rekapLogSheet.getDataRange().getValues() : [];
+      
+      var currentPem = "";
+      var currentKatD = "";
+      var currentKatE = "";
+      var rekapPasien = {};
+      
+      // Mulai baca dari baris ke-5 (index 4) ke bawah
+      for(var r=4; r<rekapPasienData.length; r++) {
+        var row = rekapPasienData[r];
+        
+        var cVal = String(row[2] || "").trim(); // Col C (Pemeriksaan)
+        var dVal = String(row[3] || "").trim(); // Col D (Umum/MCU dll)
+        var eVal = String(row[4] || "").trim(); // Col E (Nama PT / APS / APD)
+        var gVal = parseInt(row[6], 10);        // Col G (Jumlah Pasien)
+        
+        // Cek baris total keseluruhan (berhenti membaca)
+        var isTotalRow = false;
+        for(var c=0; c<row.length; c++) {
+           if(String(row[c]).toUpperCase().trim() === "TOTAL") {
+               isTotalRow = true; break;
+           }
+        }
+        if(isTotalRow) break;
+        
+        // Update State Memory jika ada isi
+        if(cVal !== "") currentPem = cVal;
+        if(dVal !== "") currentKatD = dVal;
+        if(eVal !== "") currentKatE = eVal;
+        
+        // Jika belum ada nama pemeriksaan, lewati
+        if(currentPem === "" || currentPem.toUpperCase() === "PEMERIKSAAN") continue;
+        
+        // Tentukan Kategori untuk baris ini berdasarkan State Machine
+        var category = "";
+        var dUpper = currentKatD.toUpperCase();
+        var eUpper = currentKatE.toUpperCase();
+        
+        if(dUpper === "MCU" || eUpper === "MCU") {
+            category = "MCU";
+        } else if(eUpper === "APS") {
+            category = "APS";
+        } else if(eUpper === "APD") {
+            category = "APD";
+        }
+        
+        // Masukkan nilai jika kategorinya valid dan jumlah pasien ada
+        if(category !== "" && !isNaN(gVal)) {
+            var keyPem = currentPem.toUpperCase();
+            if(!rekapPasien[keyPem]) {
+                rekapPasien[keyPem] = { APS: 0, APD: 0, MCU: 0, Total: 0 };
+            }
+            rekapPasien[keyPem][category] += gVal;
+            rekapPasien[keyPem].Total += gVal;
+        }
+      }
+      
+      // Calculate Grand Total from rekapPasien keys
+      var grandTotalPasien = 0;
+      for(var key in rekapPasien) {
+         grandTotalPasien += (rekapPasien[key].Total || 0);
+      }
+      
+      // 2. Ekstrak Rekap Film (STATE MACHINE)
+      var rekapFilmSheet = targetSs.getSheetByName("REKAP_PEMAKAIAN_FILM");
+      var rekapFilmData = rekapFilmSheet ? rekapFilmSheet.getDataRange().getValues() : [];
+      
+      var currentMod = "";
+      var rekapFilm = [];
+      var totalFilmTerpakai = 0;
+      var totalFilmRijek = 0;
+      var totalFilmStatus = "";
+      
+      // Mulai baca dari baris yang masuk akal
+      for(var r=0; r<rekapFilmData.length; r++) {
+        var row = rekapFilmData[r];
+        
+        var bVal = String(row[1] || "").trim(); // Col B (Modalitas)
+        var cVal = String(row[2] || "").trim(); // Col C (Ukuran)
+        var dVal = parseInt(row[3], 10);        // Col D (Terpakai)
+        var eVal = parseInt(row[4], 10);        // Col E (Rijek)
+        var fVal = String(row[5] || "").trim(); // Col F (Status Evaluasi)
+        
+        var isTotalRow = false;
+        for(var c=0; c<row.length; c++) {
+           if(String(row[c]).toUpperCase().trim() === "TOTAL") {
+               isTotalRow = true; 
+               totalFilmTerpakai = isNaN(dVal) ? 0 : dVal;
+               totalFilmRijek = isNaN(eVal) ? 0 : eVal;
+               totalFilmStatus = fVal;
+               break;
+           }
+        }
+        if(isTotalRow) break;
+        
+        if(bVal !== "" && bVal.toUpperCase() !== "MODALITAS") {
+            currentMod = bVal;
+        }
+        
+        if(currentMod !== "" && cVal !== "" && cVal.toUpperCase() !== "UKURAN FILM") {
+            var displayUkuran = cVal;
+            // Format Bulan Laporan date to DD-MM-YYYY
+            if(currentMod.toLowerCase().indexOf("bulan") > -1 && String(cVal).length > 20) {
+               try {
+                  var d = new Date(cVal);
+                  if(!isNaN(d.getTime())) {
+                     var dd = String(d.getDate()).padStart(2, '0');
+                     var mm = String(d.getMonth() + 1).padStart(2, '0');
+                     var yyyy = d.getFullYear();
+                     displayUkuran = dd + "-" + mm + "-" + yyyy;
+                  }
+               } catch(e){}
+            }
+            
+            rekapFilm.push({
+                modalitas: currentMod,
+                ukuran: displayUkuran,
+                terpakai: isNaN(dVal) ? 0 : dVal,
+                rijek: isNaN(eVal) ? 0 : eVal,
+                status: fVal
+            });
+        }
+      }
+      
+      // 3. Ekstrak Tabel 2 & 4 dari REKAP_3 (Sesuai Format Seragam 9 Cabang)
+      var rekap3Sheet = targetSs.getSheetByName("REKAP_3");
+      var rekap3Data = rekap3Sheet ? rekap3Sheet.getDataRange().getValues() : [];
+      var table2Film = [];
+      var table4Audit = [];
+      
+      if(rekap3Data.length >= 25) { // Pastikan baris cukup
+        try {
+          var currentModT2 = "";
+          // Tabel 2: A15 sampai H25 (Baris Index 14 sampai 24)
+          for(var r=14; r<=24; r++) {
+            var row = rekap3Data[r];
+            var aVal = String(row[0] || "").trim(); // Col A (Modalitas)
+            var bVal = String(row[1] || "").trim(); // Col B (Jenis Film)
+            var cVal = parseInt(row[2], 10);        // Col C
+            var dVal = parseInt(row[3], 10);        // Col D
+            var eVal = parseInt(row[4], 10);        // Col E
+            var fVal = parseInt(row[5], 10);        // Col F
+            var gVal = row[6] !== undefined ? row[6] : ""; // Col G (% Rijek)
+            var hVal = String(row[7] || "").trim(); // Col H (Status Audit)
+            
+            if(aVal.toUpperCase() === "MODALITAS" || bVal.toUpperCase() === "JENIS FILM") continue;
+            
+            if(aVal !== "") currentModT2 = aVal;
+            
+            // Lewati jika kosong atau tulisan TOTAL
+            if(currentModT2 !== "" && bVal !== "" && bVal.toUpperCase() !== "TOTAL") {
+               table2Film.push({
+                  modalitas: currentModT2,
+                  jenisFilm: bVal,
+                  pasienMasuk: isNaN(cVal) ? 0 : cVal,
+                  tidakCetak: isNaN(dVal) ? 0 : dVal,
+                  aktualTerpakai: isNaN(eVal) ? 0 : eVal,
+                  filmRijek: isNaN(fVal) ? 0 : fVal,
+                  errorRate: gVal, // Format persentase di-handle di frontend
+                  statusAudit: hVal
+               });
+            }
+          }
+          
+          // Tabel 4: K15 sampai N20 (Baris Index 14 sampai 19)
+          for(var r=14; r<=19; r++) {
+             var row = rekap3Data[r];
+             var kVal = String(row[10] || "").trim(); // Col K
+             var lVal = parseInt(row[11], 10);        // Col L
+             var mVal = parseInt(row[12], 10);        // Col M
+             var nVal = String(row[13] || "").trim(); // Col N
+             
+             if(kVal.toUpperCase() === "UKURAN FILM" || kVal.toUpperCase() === "UKURAN") continue;
+             
+             if(kVal !== "" && kVal.toUpperCase() !== "TOTAL") {
+                 table4Audit.push({
+                    ukuranFilm: kVal,
+                    totalLogbook: isNaN(lVal) ? 0 : lVal,
+                    opnameGudang: isNaN(mVal) ? 0 : mVal,
+                    statusGudang: nVal
+                 });
+             }
+          }
+        } catch(err) {
+           Logger.log("Error REKAP_3 Hardcoded: " + err);
+        }
+      }
+      
+      var finalData = {
+        pasien: rekapPasien,
+        film: rekapFilm,
+        rekap3_film: table2Film,
+        rekap3_audit: table4Audit,
+        grandTotal: grandTotalPasien,
+        totalFilm: {
+            terpakai: totalFilmTerpakai,
+            rijek: totalFilmRijek,
+            status: totalFilmStatus
+        }
+      };
+      
+      var jsonStr = JSON.stringify(finalData);
+      var timestamp = new Date().toLocaleString("id-ID");
+      
+      if(rowMap[cabang]) {
+        syncSheet.getRange(rowMap[cabang], 2, 1, 2).setValues([[timestamp, jsonStr]]);
+      } else {
+        syncSheet.appendRow([cabang, timestamp, jsonStr]);
+        rowMap[cabang] = syncSheet.getLastRow();
+      }
+      
+      results.push({cabang: cabang, status: "success", total: grandTotalPasien});
+      
+    } catch(e) {
+      results.push({cabang: cabang, status: "error", message: e.toString()});
+    }
+  }
+  
+  return {status: "ok", results: results};
+}
+
+function getLogbookDashboard() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var syncSheet = ss.getSheetByName("Data_Sync_Logbook");
+  if(!syncSheet) return {status: "empty"};
+  
+  var data = syncSheet.getDataRange().getValues();
+  var dashboardData = [];
+  
+  for(var i=1; i<data.length; i++) {
+    var cabang = data[i][0];
+    var lastSync = data[i][1];
+    var jsonStr = data[i][2];
+    try {
+      var parsed = JSON.parse(jsonStr);
+      parsed.cabang = cabang;
+      parsed.lastSync = lastSync;
+      dashboardData.push(parsed);
+    } catch(e) {}
+  }
+  return {status: "ok", data: dashboardData};
 }

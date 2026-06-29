@@ -4,10 +4,239 @@
  */
 
 // =========================================================================
+// [MODUL BARU] DASHBOARD LOGBOOK MANUAL SYNC
+// =========================================================================
+var globalLogbookData = [];
+var activeLogbookCabang = "";
+
+function loadDashboardLogbook() {
+  $('#loadingDashLogbook').removeClass('d-none');
+  $('#contentDashLogbook').addClass('d-none');
+  $('#errorDashLogbook').addClass('d-none');
+  
+  $.getJSON(API_URL + "?action=getLogbookDashboard", function(res) {
+    $('#loadingDashLogbook').addClass('d-none');
+    if(res.status === 'empty' || (res.data && res.data.length === 0)) {
+       $('#errorDashLogbook').removeClass('d-none').html('<i class="fa-solid fa-triangle-exclamation me-2"></i> Belum ada data sinkronisasi. Silakan masukkan link di sheet "Settings_Logbook" Pusat lalu klik Sinkronisasi Sekarang.');
+       return;
+    }
+    
+    if(res.status === 'ok') {
+       globalLogbookData = res.data;
+       $('#contentDashLogbook').removeClass('d-none');
+       renderLogbookCabangCards();
+    } else {
+       $('#errorDashLogbook').removeClass('d-none').text(res.message || "Gagal memuat data.");
+    }
+  }).fail(function() {
+    $('#loadingDashLogbook').addClass('d-none');
+    $('#errorDashLogbook').removeClass('d-none').text("Terjadi kesalahan jaringan.");
+  });
+}
+
+function renderLogbookCabangCards() {
+  var container = $('#logbookCabangContainer');
+  container.empty();
+  
+  if(globalLogbookData.length === 0) return;
+  
+  globalLogbookData.forEach(function(item, index) {
+     var cabang = item.cabang;
+     var totalPasien = item.grandTotal || 0;
+     
+     // Logika warna degradasi modern untuk setiap cabang
+     var c = cabang.toUpperCase().trim();
+     var bg = "linear-gradient(135deg, #1e293b, #475569)"; // Default gray gradient
+     var color = "#ffffff";
+     
+     if (c.includes("KDI")) bg = "linear-gradient(135deg, #1e3a8a, #3b82f6)"; // Biru
+     else if (c.includes("MKS")) bg = "linear-gradient(135deg, #991b1b, #ef4444)"; // Merah
+     else if (c.includes("BJM")) bg = "linear-gradient(135deg, #4d7c0f, #84cc16)"; // Hijau Muda
+     else if (c.includes("PLU")) { bg = "linear-gradient(135deg, #ca8a04, #fde047)"; color = "#000000"; } // Kuning (Teks Hitam)
+     else if (c.includes("GTO")) bg = "linear-gradient(135deg, #14532d, #22c55e)"; // Hijau Tua
+     else if (c.includes("MND")) bg = "linear-gradient(135deg, #c2410c, #f97316)"; // Oranye Cerah
+     else if (c.includes("LWK")) bg = "linear-gradient(135deg, #be185d, #f472b6)"; // Pink
+     else if (c.includes("BHD") || c.includes("DIHD")) bg = "linear-gradient(135deg, #5c2e0e, #a0522d)"; // Coklat
+     else if (c.includes("KLK")) bg = "linear-gradient(135deg, #1e293b, #475569)"; // Abu-abu gelap
+     else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #111827, #6b7280)"; // Hitam/Abu
+     else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0369a1, #2dd4bf)"; // Biru Teal
+     else if (c.includes("BUB")) bg = "linear-gradient(135deg, #9a3412, #ea580c)"; // Oranye Bata
+     
+     var cardHtml = `
+       <div class="col">
+         <div class="card h-100 shadow-sm border-0 pointer-card logbook-cabang-card" style="background: ${bg}; color: ${color}; transition: transform 0.2s;" onclick="openLogbookDetail('${cabang}')" id="cardLogbook_${cabang.replace(/\s/g,'_')}">
+           <div class="card-body text-center p-3 d-flex flex-column justify-content-center">
+             <h6 class="fw-bold mb-2 text-truncate">${cabang}</h6>
+             <div class="display-6 fw-bold mb-1">${totalPasien}</div>
+             <small style="opacity: 0.85;">Total Ekspose</small>
+           </div>
+         </div>
+       </div>
+     `;
+     container.append(cardHtml);
+  });
+}
+
+function openLogbookDetail(cabang) {
+  // Highlight the card
+  $('.logbook-cabang-card').css('transform', 'scale(1)').css('box-shadow', 'none');
+  var safeId = cabang.replace(/\s/g,'_');
+  $('#cardLogbook_' + safeId).css('transform', 'scale(1.05)').css('box-shadow', '0 0 15px rgba(0,0,0,0.3)');
+  
+  var detailDiv = $('#detailLogbookCabang');
+  detailDiv.css('opacity', '0');
+  setTimeout(function() {
+     var data = globalLogbookData.find(d => d.cabang === cabang);
+     if(!data) return;
+     
+     $('#titleDetailCabang').text('Rincian: ' + cabang);
+     $('#badgeLastSync').text('Terakhir Sync: ' + (data.lastSync || '-'));
+     
+     // 1. Render Pasien
+     var tbodyPasien = $('#tbodyRincianPasien');
+     tbodyPasien.empty();
+     var pasienHtml = "";
+     var order = ["THORAX", "THORAKS", "MUSCULO", "DENTAL", "PANORAMIC/CEPALO", "CT-SCAN"];
+     // Combine THORAX and THORAKS if any mismatch
+     var pKeys = Object.keys(data.pasien || {});
+     pKeys.forEach(function(k) {
+        var d = data.pasien[k];
+        pasienHtml += `
+          <tr>
+            <td class="text-start fw-bold">${k}</td>
+            <td>${d.APS || '-'}</td>
+            <td>${d.APD || '-'}</td>
+            <td>${d.MCU || '-'}</td>
+            <td class="fw-bold text-primary">${d.Total || '-'}</td>
+          </tr>
+        `;
+     });
+     if(pKeys.length === 0) pasienHtml = `<tr><td colspan="5" class="text-muted">Data pemeriksaan tidak ditemukan</td></tr>`;
+     tbodyPasien.html(pasienHtml);
+     
+     // 2. Render Film
+     var tbodyFilm = $('#tbodyRincianFilm');
+     tbodyFilm.empty();
+     var filmHtml = "";
+     if(data.film && data.film.length > 0) {
+        data.film.forEach(function(f) {
+           filmHtml += `
+             <tr>
+               <td class="text-start fw-bold text-secondary">${f.modalitas}</td>
+               <td>${f.ukuran}</td>
+               <td>${f.terpakai}</td>
+               <td class="fw-bold text-danger">${f.rijek}</td>
+               <td>${f.status || '-'}</td>
+             </tr>
+           `;
+        });
+        if(data.totalFilm) {
+          filmHtml += `
+            <tr class="table-warning fw-bold">
+              <td colspan="2" class="text-end">TOTAL KESELURUHAN</td>
+              <td>${data.totalFilm.terpakai}</td>
+              <td class="text-danger">${data.totalFilm.rijek}</td>
+              <td>${data.totalFilm.status || '-'}</td>
+            </tr>
+          `;
+        }
+     } else {
+        filmHtml = `<tr><td colspan="5" class="text-muted">Data pemakaian film tidak ditemukan</td></tr>`;
+     }
+     tbodyFilm.html(filmHtml);
+     
+     // 3. Render Rekap 3 Film (Error Rate)
+     var tbodyRekap3Film = $('#tbodyRekap3Film');
+     tbodyRekap3Film.empty();
+     var htmlRekap3Film = "";
+     if(data.rekap3_film && data.rekap3_film.length > 0) {
+        data.rekap3_film.forEach(function(f) {
+           var rawErrStr = String(f.errorRate || "").replace('%', '').trim();
+           var numErr = parseFloat(rawErrStr);
+           var displayErr = "";
+           
+           if(isNaN(numErr)) {
+               displayErr = f.errorRate || "-"; 
+               numErr = 0;
+           } else {
+               if(numErr < 1 && numErr > 0) {
+                  numErr = numErr * 100;
+               }
+               displayErr = numErr.toFixed(2) + "%";
+           }
+           
+           var errorClass = numErr > 5 ? "text-danger fw-bold" : "text-success fw-bold";
+           var safeStatus = String(f.statusAudit || "");
+           var statusIcon = safeStatus.toUpperCase().includes("AMAN") ? '<i class="fa-solid fa-circle-check text-success"></i>' : '<i class="fa-solid fa-triangle-exclamation text-warning"></i>';
+           htmlRekap3Film += `
+             <tr>
+               <td class="text-start fw-bold text-secondary">${f.modalitas}</td>
+               <td>${f.jenisFilm}</td>
+               <td>${f.pasienMasuk}</td>
+               <td>${f.tidakCetak}</td>
+               <td>${f.aktualTerpakai}</td>
+               <td class="fw-bold text-danger">${f.filmRijek}</td>
+               <td class="${errorClass}">${displayErr}</td>
+               <td>${statusIcon} ${safeStatus}</td>
+             </tr>
+           `;
+        });
+     } else {
+        htmlRekap3Film = `<tr><td colspan="8" class="text-muted">Data REKAP_3 (Audit Pemakaian) belum tersedia. Silakan lakukan sinkronisasi ulang.</td></tr>`;
+     }
+     tbodyRekap3Film.html(htmlRekap3Film);
+
+     // 4. Render Rekap 3 Audit (Gudang)
+     var tbodyRekap3Audit = $('#tbodyRekap3Audit');
+     tbodyRekap3Audit.empty();
+     var htmlRekap3Audit = "";
+     if(data.rekap3_audit && data.rekap3_audit.length > 0) {
+        data.rekap3_audit.forEach(function(a) {
+           var safeStatusGudang = String(a.statusGudang || "");
+           var isHilang = safeStatusGudang.toUpperCase().includes("HILANG");
+           var statusClass = isHilang ? "text-danger fw-bold bg-danger bg-opacity-10" : "text-success fw-bold";
+           var icon = isHilang ? '<i class="fa-solid fa-circle-xmark me-1"></i>' : '<i class="fa-solid fa-check me-1"></i>';
+           htmlRekap3Audit += `
+             <tr>
+               <td class="text-start fw-bold text-secondary">${a.ukuranFilm}</td>
+               <td>${a.totalLogbook}</td>
+               <td>${a.opnameGudang}</td>
+               <td class="${statusClass}">${icon}${safeStatusGudang}</td>
+             </tr>
+           `;
+        });
+     } else {
+        htmlRekap3Audit = `<tr><td colspan="4" class="text-muted">Data REKAP_3 (Audit Gudang) tidak ditemukan.</td></tr>`;
+     }
+     tbodyRekap3Audit.html(htmlRekap3Audit);
+
+     detailDiv.removeClass('d-none').css('opacity', '1');
+  }, 200);
+}
+
+function syncLogbookManual() {
+  var btn = $('#btnSyncLogbook');
+  btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyingkronkan...');
+  
+  $.getJSON(API_URL + "?action=syncLogbook", function(res) {
+     if(res.status === 'ok') {
+        alert("Sinkronisasi Berhasil!\n\nRobot berhasil membaca " + res.results.length + " cabang.");
+        loadDashboardLogbook(); // Reload data
+     } else {
+        alert("Gagal: " + res.message);
+     }
+  }).fail(function() {
+     alert("Terjadi kesalahan saat menyambung ke server sinkronisasi.");
+  }).always(function() {
+     btn.prop('disabled', false).html('<i class="fa-solid fa-rotate me-2"></i> Sinkronisasi Sekarang');
+  });
+}
+
+// =========================================================================
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbwr_F3sIngxdcukaFsX87wcpcEaOIChKKCftveF2hIYQYryfkDvx3WedIByg_NMoE3V/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxK66K44nY4lzgFzT4Q3s1kx_PdGovI02RR_fPwlQBwcE9rbZjoxsJylc4ZFKZhjCYh/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -219,8 +448,11 @@ let masterData = {
   film: [0, 0, 0, 0, 0, 0, 0, 0, 0], 
   totalOrder: 0, 
   totalCR: 0, 
+  totalRijek: 0,
+  rejectDetail: { byFilm: {}, byCabang: {} },
   stokRendah: [], 
-  tabelData: { harian: [], order: [], inventori: [], perijinan: [], logbook: [] }
+  tabelData: { harian: [], order: [], inventori: [], perijinan: [], logbook: [] },
+  radarAudit: { alarm1: [], alarm2: [] }
 };
 
 function initDashboardChart() {
@@ -282,10 +514,13 @@ function refreshDashboard() {
       masterData.labels = (response.chart.labels || masterData.labels).map(function(l) { return l === "MXM-GTL" ? "MXM-GTO" : l; });
       masterData.pasien = response.chart.pasien;
       masterData.film = response.chart.film;
+      masterData.totalRijek = response.ringkasan.rijek || 0;
+      if (response.rejectDetail) masterData.rejectDetail = response.rejectDetail;
       masterData.totalOrder = response.ringkasan.order;
       masterData.totalCR = response.ringkasan.cr;
       masterData.stokRendah = response.stokRendah;
       masterData.tabelData = response.tabelData;
+      if (response.radarAudit) masterData.radarAudit = response.radarAudit;
       
       var selFilter = document.getElementById('filterDashboard');
       if (selFilter && masterData.labels.length > 0) {
@@ -311,6 +546,7 @@ function refreshDashboard() {
       }
       
       updateDashboardView();
+      renderAuditPanels();
       
       if(btn) { 
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Berhasil'; 
@@ -381,6 +617,15 @@ function updateDashboardView() {
   if(document.getElementById('dashTotalFilm')) {
     var sumFilm = (filter === 'ALL') ? masterData.film.reduce((a,b)=>a+b, 0) : masterData.film[idx];
     document.getElementById('dashTotalFilm').innerHTML = sumFilm + ' <span class="fs-6 text-danger"><i class="fa-solid fa-film"></i> Lembar</span>';
+  }
+
+  if(document.getElementById('dashTotalRijek')) {
+    // If filtered by specific branch, it is difficult because rijek isn't an array in chart data yet, but we can use rejectDetail
+    var sumRijek = masterData.totalRijek;
+    if(filter !== 'ALL' && masterData.rejectDetail && masterData.rejectDetail.byCabang) {
+      sumRijek = masterData.rejectDetail.byCabang[filter] || 0;
+    }
+    document.getElementById('dashTotalRijek').innerHTML = sumRijek + ' <span class="fs-6 text-warning"><i class="fa-solid fa-trash-can"></i> Lembar</span>';
   }
 
   if(document.getElementById('dashTotalOrder')) {
@@ -468,6 +713,11 @@ function renderTabelDashboard(filter) {
     tbodyOrder.innerHTML = '';
     var dataOrder = masterData.tabelData.order;
     
+    // NEW HOOK: Generate Order Dashboard Cards
+    if(filter === 'ALL') {
+       renderOrderCabangCards(dataOrder);
+    }
+    
     if (!dataOrder || dataOrder.length === 0) {
       tbodyOrder.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Tidak ada antrian order logistik.</td></tr>';
     } else {
@@ -494,7 +744,7 @@ function renderTabelDashboard(filter) {
     var dataInv = masterData.tabelData.inventori;
     
     if (!dataInv || dataInv.length === 0) {
-      tbodyInv.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Database aset kosong.</td></tr>';
+      tbodyInv.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Database aset kosong.</td></tr>';
     } else {
       dataInv.forEach(function(row) {
         if(filter === 'ALL' || row.cabang === filter) {
@@ -502,13 +752,27 @@ function renderTabelDashboard(filter) {
           if (row.kondisi.indexOf("Ringan") !== -1) condColor = "badge-glow-warning";
           if (row.kondisi.indexOf("Berat") !== -1) condColor = "badge-glow-danger";
           
+          var catatanText = "-";
+          if (row.keterangan && row.keterangan.trim() !== "") {
+             catatanText = `<div class="text-start text-muted" style="font-size: 0.75rem; max-width: 200px; white-space: pre-wrap; font-style: italic;">"${row.keterangan}"</div>`;
+          }
+
+          var aksiBtn = "";
+          if (row.linkArsip) {
+            aksiBtn = `<a href="${row.linkArsip}" target="_blank" class="btn btn-sm btn-outline-success fw-bold" style="font-size: 0.75rem"><i class="fa-solid fa-image"></i> Lihat Foto</a>`;
+          } else {
+            aksiBtn = `<button class="btn btn-sm btn-outline-warning text-dark fw-bold" style="font-size: 0.75rem" onclick="bukaModalUploadInventori('${row.id}', '${row.cabang}')"><i class="fa-solid fa-upload"></i> Upload</button>`;
+          }
+          
           tbodyInv.innerHTML += '<tr>' +
+            '<td class="fw-bold text-start text-dark">' + (row.kategori || row.aset || "-") + '</td>' +
             '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
-            '<td>' + row.kategori + '</td>' +
             '<td class="fw-bold text-start">' + row.merk + '</td>' +
             '<td>' + row.sn + '</td>' +
             '<td>' + row.tahun + '</td>' +
             '<td><span class="badge ' + condColor + '">' + row.kondisi + '</span></td>' +
+            '<td class="text-start">' + catatanText + '</td>' +
+            '<td>' + aksiBtn + '</td>' +
           '</tr>';
         }
       });
@@ -580,6 +844,122 @@ function renderTabelDashboard(filter) {
       });
     }
   }
+}
+
+// ==========================================
+// [MODUL BARU] DASHBOARD NOTIFIKASI ORDER
+// ==========================================
+var globalOrderData = []; 
+
+function renderOrderCabangCards(dataOrder) {
+  var container = $('#orderCabangContainer');
+  if(!container.length) return; // Prevent error if DOM not loaded yet
+  container.empty();
+  globalOrderData = dataOrder || [];
+  
+  if (globalOrderData.length === 0) return;
+  
+  // 1. Grouping data order by Cabang
+  var groupedOrder = {};
+  globalOrderData.forEach(function(row) {
+     var cabang = row.cabang;
+     if(!cabang) return;
+     if(!groupedOrder[cabang]) groupedOrder[cabang] = { totalBoxFilm: 0, items: [] };
+     
+     groupedOrder[cabang].items.push(row);
+     
+     // Logika perhitungan khusus Total Box Film
+     var kategori = (row.kategori || "").toLowerCase();
+     var nama = (row.nama || "").toLowerCase();
+     var jumlahStr = (row.jumlah || "").toLowerCase();
+     
+     // Mengecek apakah orderan ini adalah 4 jenis film yang dimaksud (via kategori atau nama)
+     if (kategori.includes("film") || nama.includes("8x10") || nama.includes("10x14") || nama.includes("14x17") || nama.includes("a4")) {
+         // Ambil angka dari string seperti "10 Box" atau "5 box"
+         var numMatches = jumlahStr.match(/\d+/);
+         if (numMatches && numMatches.length > 0) {
+             groupedOrder[cabang].totalBoxFilm += parseInt(numMatches[0], 10);
+         }
+     }
+  });
+  
+  // 2. Render Kartu
+  var orderKeys = Object.keys(groupedOrder).sort(); 
+  
+  orderKeys.forEach(function(cabang) {
+     var info = groupedOrder[cabang];
+     
+     // Logika warna degradasi persis seperti Logbook
+     var c = cabang.toUpperCase().trim();
+     var bg = "linear-gradient(135deg, #1e293b, #475569)";
+     var color = "#ffffff";
+     
+     if (c.includes("KDI")) bg = "linear-gradient(135deg, #1e3a8a, #3b82f6)";
+     else if (c.includes("MKS")) bg = "linear-gradient(135deg, #991b1b, #ef4444)";
+     else if (c.includes("BJM")) bg = "linear-gradient(135deg, #4d7c0f, #84cc16)";
+     else if (c.includes("PLU")) { bg = "linear-gradient(135deg, #ca8a04, #fde047)"; color = "#000000"; }
+     else if (c.includes("GTO")) bg = "linear-gradient(135deg, #14532d, #22c55e)";
+     else if (c.includes("MND")) bg = "linear-gradient(135deg, #c2410c, #f97316)";
+     else if (c.includes("LWK")) bg = "linear-gradient(135deg, #be185d, #f472b6)";
+     else if (c.includes("BHD") || c.includes("DIHD")) bg = "linear-gradient(135deg, #5c2e0e, #a0522d)";
+     else if (c.includes("KLK")) bg = "linear-gradient(135deg, #1e293b, #475569)";
+     else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #111827, #6b7280)";
+     else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0369a1, #2dd4bf)";
+     else if (c.includes("BUB")) bg = "linear-gradient(135deg, #9a3412, #ea580c)";
+     
+     var cardHtml = `
+       <div class="col">
+         <div class="card h-100 shadow-sm border-0 pointer-card order-cabang-card" style="background: ${bg}; color: ${color}; transition: transform 0.2s;" onclick="openOrderDetail('${cabang}')" id="cardOrder_${cabang.replace(/\s/g,'_')}">
+           <div class="card-body text-center p-3 d-flex flex-column justify-content-center">
+             <h6 class="fw-bold mb-2 text-truncate">${cabang}</h6>
+             <div class="display-6 fw-bold mb-1">${info.totalBoxFilm}</div>
+             <small style="opacity: 0.85;">Total Box Film</small>
+           </div>
+         </div>
+       </div>
+     `;
+     container.append(cardHtml);
+  });
+}
+
+function openOrderDetail(cabang) {
+  // Highlight efek pada kartu yang diklik
+  $('.order-cabang-card').css('transform', 'scale(1)').css('box-shadow', 'none');
+  var safeId = cabang.replace(/\s/g,'_');
+  $('#cardOrder_' + safeId).css('transform', 'scale(1.05)').css('box-shadow', '0 0 15px rgba(0,0,0,0.3)');
+  
+  var detailDiv = $('#detailOrderCabang');
+  detailDiv.css('opacity', '0');
+  
+  setTimeout(function() {
+     $('#titleDetailOrderCabang').text(cabang);
+     
+     var listUl = $('#listRincianOrder');
+     listUl.empty();
+     
+     var myOrders = globalOrderData.filter(d => d.cabang === cabang);
+     
+     if (myOrders.length === 0) {
+        listUl.html('<li class="list-group-item text-muted text-center py-3">Tidak ada data order.</li>');
+     } else {
+        var htmlList = "";
+        myOrders.forEach(function(o) {
+           var badgeClass = (o.status === "Pending" || o.status === "Proses") ? "bg-warning text-dark" : "bg-success text-white";
+           htmlList += `
+             <li class="list-group-item d-flex justify-content-between align-items-center">
+               <div>
+                 <span class="badge bg-secondary me-2"><i class="fa-regular fa-calendar-days me-1"></i> ${o.tanggal}</span>
+                 <strong class="text-primary" style="font-size:1.05rem;">${o.nama}</strong> = <span class="fw-bold text-dark">${o.jumlah}</span>
+               </div>
+               <span class="badge ${badgeClass} rounded-pill">${o.status}</span>
+             </li>
+           `;
+        });
+        listUl.html(htmlList);
+     }
+     
+     detailDiv.removeClass('d-none').css('opacity', '1');
+  }, 200);
 }
 
 function renderTabelLogbook() {
@@ -1548,8 +1928,137 @@ function initAnalyticsBI() {
           }
         });
       }
+      masterData.radarAudit = data.radarAudit;
+      renderAuditPanels();
     })
     .catch(function(e) { console.error("Gagal menggambar chart BI: ", e); });
+}
+
+function renderAuditPanels() {
+  // Render Alarm 1 (Kebocoran)
+  var tb1 = document.querySelector('#tabelAlarm1 tbody');
+  if(tb1 && masterData.radarAudit && masterData.radarAudit.alarm1) {
+    if(masterData.radarAudit.alarm1.length === 0) {
+      tb1.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Aman terkendali. Tidak ada indikasi kebocoran.</td></tr>';
+    } else {
+      tb1.innerHTML = '';
+      masterData.radarAudit.alarm1.forEach(function(r) {
+        var warnStyle = (parseFloat(r.persenReject) > 10 || parseFloat(r.selisih) < 0) ? 'class="text-danger fw-bold"' : '';
+        tb1.innerHTML += '<tr>' +
+          '<td class="fw-bold">' + getBadgeCabang(r.cabang) + '</td>' +
+          '<td>' + r.jenisFilm + '</td>' +
+          '<td>' + r.harianDipakai + '</td>' +
+          '<td>' + r.harianRusak + '</td>' +
+          '<td>' + r.stokKeluar + '</td>' +
+          '<td ' + warnStyle + '>' + r.selisih + '</td>' +
+          '<td ' + warnStyle + '>' + r.persenReject + '</td>' +
+          '<td><span class="badge badge-glow-danger">' + r.status + '</span></td>' +
+        '</tr>';
+      });
+    }
+  }
+
+  // Render Alarm 2 (Anomali Pasien)
+  var tb2 = document.querySelector('#tabelAlarm2 tbody');
+  if(tb2 && masterData.radarAudit && masterData.radarAudit.alarm2) {
+    if(masterData.radarAudit.alarm2.length === 0) {
+      tb2.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Aman terkendali. Data pasien sinkron.</td></tr>';
+    } else {
+      tb2.innerHTML = '';
+      masterData.radarAudit.alarm2.forEach(function(r) {
+        tb2.innerHTML += '<tr>' +
+          '<td class="fw-bold">' + getBadgeCabang(r.cabang) + '</td>' +
+          '<td>' + r.logbookPasien + '</td>' +
+          '<td>' + r.harianPasien + '</td>' +
+          '<td class="text-danger fw-bold">' + r.selisihPasien + '</td>' +
+          '<td>' + r.harianFilm + '</td>' +
+          '<td>' + r.rasioFilm + '</td>' +
+          '<td><span class="badge badge-glow-warning">' + r.status + '</span></td>' +
+        '</tr>';
+      });
+    }
+  }
+}
+
+function renderRijekFilm(filterCabang, trElement) {
+  var tbJenis = document.querySelector('#tabelRijekJenis tbody');
+  var judulJenis = document.getElementById('judulRijekJenis');
+  var wrapper = document.getElementById('wrapperRijekJenis');
+  
+  // Highlight manipulation
+  document.querySelectorAll('#tabelRijekCabang tbody tr').forEach(function(tr) {
+    tr.classList.remove('table-primary');
+  });
+  if(trElement) trElement.classList.add('table-primary');
+
+  // Fade out
+  if(wrapper) wrapper.style.opacity = 0;
+  
+  setTimeout(function() {
+    tbJenis.innerHTML = '';
+    var totalJenis = 0;
+    var dataFilm = {};
+    
+    if (filterCabang && filterCabang !== 'ALL') {
+      dataFilm = (masterData.rejectDetail.cross && masterData.rejectDetail.cross[filterCabang]) ? masterData.rejectDetail.cross[filterCabang] : {};
+      if(judulJenis) {
+        judulJenis.innerHTML = '<span><i class="fa-solid fa-layer-group me-2"></i> Rincian: ' + getBadgeCabang(filterCabang) + '</span> <button class="btn btn-sm btn-outline-secondary" style="font-size:0.7rem; padding: 2px 6px;" onclick="renderRijekFilm(\'ALL\')"><i class="fa-solid fa-rotate-left"></i> Reset</button>';
+      }
+    } else {
+      dataFilm = masterData.rejectDetail.byFilm || {};
+      if(judulJenis) {
+        judulJenis.innerHTML = '<span><i class="fa-solid fa-layer-group me-2"></i> Berdasarkan Jenis Film</span>';
+      }
+    }
+
+    var keysFilm = Object.keys(dataFilm);
+    if(keysFilm.length === 0) {
+      tbJenis.innerHTML = '<tr><td colspan="2" class="text-muted py-3">Tidak ada rijek.</td></tr>';
+    } else {
+      keysFilm.forEach(function(k) {
+        var val = dataFilm[k];
+        totalJenis += val;
+        tbJenis.innerHTML += '<tr><td class="fw-bold text-start">' + k + '</td><td class="text-danger fw-bold">' + val + '</td></tr>';
+      });
+      tbJenis.innerHTML += '<tr class="table-warning fw-bold"><td class="text-start">TOTAL</td><td class="text-danger">' + totalJenis + '</td></tr>';
+    }
+    
+    // Fade in
+    if(wrapper) wrapper.style.opacity = 1;
+  }, 150);
+}
+
+function bukaRincianReject() {
+  if(!masterData.rejectDetail || !masterData.rejectDetail.byFilm) return;
+  
+  var tbCabang = document.querySelector('#tabelRijekCabang tbody');
+  var gTotal = document.getElementById('grandTotalRijek');
+  
+  // Render default: all branches
+  renderRijekFilm('ALL');
+
+  if(tbCabang) {
+    tbCabang.innerHTML = '';
+    var totalCbg = 0;
+    var keysCabang = Object.keys(masterData.rejectDetail.byCabang);
+    if(keysCabang.length === 0) {
+      tbCabang.innerHTML = '<tr><td colspan="2" class="text-muted">Tidak ada rijek bulan ini.</td></tr>';
+    } else {
+      keysCabang.forEach(function(k) {
+        var val = masterData.rejectDetail.byCabang[k];
+        totalCbg += val;
+        tbCabang.innerHTML += '<tr style="cursor:pointer;" onclick="renderRijekFilm(\''+k+'\', this)" onmouseover="if(!this.classList.contains(\'table-primary\')) this.style.backgroundColor=\'#f3f4f6\'" onmouseout="this.style.backgroundColor=\'\'"><td class="fw-bold text-start">' + getBadgeCabang(k) + '</td><td class="text-danger fw-bold">' + val + '</td></tr>';
+      });
+      tbCabang.innerHTML += '<tr class="table-warning fw-bold"><td class="text-start">TOTAL</td><td class="text-danger">' + totalCbg + '</td></tr>';
+    }
+  }
+
+  if(gTotal) {
+    gTotal.innerText = masterData.totalRijek;
+  }
+
+  var myModal = new bootstrap.Modal(document.getElementById('modalRejectDetail'));
+  myModal.show();
 }
 
 // PENGECEKAN PERINGATAN EXP AIRPORT & STATUS BAPETEN

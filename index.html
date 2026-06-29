@@ -122,6 +122,9 @@
                 <button class="nav-link active fw-bold" id="tab-ringkasan-btn" data-bs-toggle="pill" data-bs-target="#tab-ringkasan" type="button" role="tab"><i class="fa-solid fa-chart-pie"></i> Ringkasan Utama</button>
               </li>
               <li class="nav-item">
+                <button class="nav-link fw-bold" id="tab-dash-logbook-btn" data-bs-toggle="pill" data-bs-target="#tab-dash-logbook-view" type="button" role="tab" onclick="panggilJikaBelum('dashLogbook', function(){ loadDashboardLogbook(); })"><i class="fa-solid fa-chart-line text-warning"></i> Dashboard Logbook</button>
+              </li>
+              <li class="nav-item">
                 <button class="nav-link fw-bold" id="tab-harian-btn" data-bs-toggle="pill" data-bs-target="#tab-harian-view" type="button" role="tab"><i class="fa-solid fa-calendar-day"></i> Pantauan Harian</button>
               </li>
               <li class="nav-item">
@@ -147,28 +150,176 @@
             </ul>
 
             <div class="tab-content" id="dashboardTabsContent">
-              <!-- Sub-tab 1: Ringkasan Utama -->
-              <div class="tab-pane fade show active" id="tab-ringkasan" role="tabpanel">
-                <div class="row mb-4">
-                  <div class="col-md-3 mb-3">
-                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('pasien')">
-                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">TOTAL PASIEN (BULAN INI)</div>
-                      <h3 class="fw-bold text-dark mb-0" id="dashTotalPasien">0 <span class="fs-6 text-success"><i class="fa-solid fa-user ms-1"></i> Pasien</span></h3>
+              <!-- Sub-tab Baru: Dashboard Logbook -->
+              <div class="tab-pane fade" id="tab-dash-logbook-view" role="tabpanel">
+                <div class="card-kaca mb-4">
+                  <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-primary mb-0"><i class="fa-solid fa-chart-line me-2 text-warning"></i> Dashboard Sinkronisasi Logbook</h4>
+                    <button class="btn btn-warning fw-bold rounded-pill shadow-sm" onclick="syncLogbookManual()" id="btnSyncLogbook">
+                      <i class="fa-solid fa-rotate me-2"></i> Sinkronisasi Sekarang
+                    </button>
+                  </div>
+                  
+                  <div id="loadingDashLogbook" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 fw-bold text-muted">Membaca Data Pusat...</p>
+                  </div>
+                  
+                  <div id="errorDashLogbook" class="alert alert-danger d-none fw-bold text-center"></div>
+                  
+                  <div id="contentDashLogbook" class="d-none">
+                    <!-- ROW CABANG CARDS -->
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-hospital me-2"></i> Total Ekspose Per Cabang</h6>
+                    <div class="row row-cols-2 row-cols-md-5 g-3 mb-4" id="logbookCabangContainer">
+                       <!-- Generated via JS -->
+                    </div>
+                    
+                    <!-- SECTION DETAIL -->
+                    <div id="detailLogbookCabang" class="d-none">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-primary" id="titleDetailCabang">Rincian: -</h5>
+                        <span class="badge bg-secondary" id="badgeLastSync">Terkahir Sync: -</span>
+                      </div>
+                      
+                      <div class="row">
+                        <!-- PASIEN BREAKDOWN -->
+                        <div class="col-md-6 mb-4">
+                          <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #3b82f6 !important;">
+                            <div class="card-body">
+                              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="fa-solid fa-users me-2 text-primary"></i> Rincian Pemeriksaan Pasien</h6>
+                              <div class="table-responsive">
+                                <table class="table table-sm table-hover text-center align-middle" style="font-size:0.85rem;">
+                                  <thead class="table-primary">
+                                    <tr>
+                                      <th class="text-start">Pemeriksaan</th>
+                                      <th>APS</th>
+                                      <th>APD</th>
+                                      <th>MCU</th>
+                                      <th class="fw-bold">Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody id="tbodyRincianPasien">
+                                    <!-- JS -->
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- FILM BREAKDOWN (LAMA) -->
+                        <div class="col-md-6 mb-4">
+                          <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #ef4444 !important;">
+                            <div class="card-body">
+                              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="fa-solid fa-film me-2 text-danger"></i> Rincian Pemakaian & Rijek Film (Lama)</h6>
+                              <div class="table-responsive">
+                                <table class="table table-sm table-hover text-center align-middle" style="font-size:0.85rem;">
+                                  <thead class="table-danger">
+                                    <tr>
+                                      <th class="text-start">Modalitas</th>
+                                      <th>Ukuran Film</th>
+                                      <th>Terpakai</th>
+                                      <th class="text-danger">Rijek</th>
+                                      <th>Status Evaluasi</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody id="tbodyRincianFilm">
+                                    <!-- JS -->
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- BARIS BARU UNTUK REKAP_3 -->
+                      <div class="row">
+                        <!-- ERROR RATE & PEMAKAIAN (TABEL 2) -->
+                        <div class="col-md-8 mb-4">
+                          <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #f59e0b !important;">
+                            <div class="card-body">
+                              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="fa-solid fa-chart-pie me-2 text-warning"></i> Audit Pemakaian & Error Rate (% Rijek)</h6>
+                              <div class="table-responsive">
+                                <table class="table table-sm table-hover text-center align-middle" style="font-size:0.65rem;">
+                                  <thead class="table-warning">
+                                    <tr>
+                                      <th class="text-start">Modalitas</th>
+                                      <th>Jenis Film</th>
+                                      <th>Masuk</th>
+                                      <th>Tidak Cetak</th>
+                                      <th>Terpakai</th>
+                                      <th class="text-danger">Rijek</th>
+                                      <th class="text-danger fw-bold">% Error</th>
+                                      <th>Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody id="tbodyRekap3Film">
+                                    <!-- JS -->
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- AUDIT OPNAME GUDANG (TABEL 4) -->
+                        <div class="col-md-4 mb-4">
+                          <div class="card shadow-sm border-0 h-100" style="border-top: 4px solid #10b981 !important;">
+                            <div class="card-body">
+                              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3"><i class="fa-solid fa-boxes-stacked me-2 text-success"></i> Audit Opname Gudang</h6>
+                              <div class="table-responsive">
+                                <table class="table table-sm table-hover text-center align-middle" style="font-size:0.65rem;">
+                                  <thead class="table-success">
+                                    <tr>
+                                      <th class="text-start">Ukuran Film</th>
+                                      <th>Total<br>Logbook</th>
+                                      <th>Opname<br>Gudang</th>
+                                      <th>Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody id="tbodyRekap3Audit">
+                                    <!-- JS -->
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-md-3 mb-3">
+                </div>
+              </div>
+
+              <!-- Sub-tab 1: Ringkasan Utama -->
+              <div class="tab-pane fade show active" id="tab-ringkasan" role="tabpanel">
+                <div class="row row-cols-2 row-cols-md-5 mb-4">
+                  <div class="col mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('pasien')">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">TOTAL EKSPOSE (BULAN INI)</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalPasien">0 <span class="fs-6 text-success"><i class="fa-solid fa-user ms-1"></i> Ekspose</span></h3>
+                    </div>
+                  </div>
+                  <div class="col mb-3">
                     <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('film')">
                       <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">PEMAKAIAN FILM (LEMBAR)</div>
                       <h3 class="fw-bold text-dark mb-0" id="dashTotalFilm">0 <span class="fs-6 text-danger"><i class="fa-solid fa-film ms-1"></i> Lembar</span></h3>
                     </div>
                   </div>
-                  <div class="col-md-3 mb-3">
+                  <div class="col mb-3">
+                    <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianReject()">
+                      <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">FILM RIJEK (BULAN INI)</div>
+                      <h3 class="fw-bold text-dark mb-0" id="dashTotalRijek">0 <span class="fs-6 text-warning"><i class="fa-solid fa-trash-can ms-1"></i> Lembar</span></h3>
+                    </div>
+                  </div>
+                  <div class="col mb-3">
                     <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('order')">
                       <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">ORDER BARANG (PENDING)</div>
                       <h3 class="fw-bold text-dark mb-0" id="dashTotalOrder">0 <span class="fs-6 text-muted">Items</span></h3>
                     </div>
                   </div>
-                  <div class="col-md-3 mb-3">
+                  <div class="col mb-3">
                     <div class="card-kaca card-mini animated-border-kaca h-100" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="bukaRincianDash('alat')">
                       <div class="text-muted fw-bold mb-1" style="font-size:0.8rem;">LAPORAN RUSAK ALAT</div>
                       <h3 class="fw-bold text-dark mb-0" id="dashTotalCR">0 <span class="fs-6 text-muted">Cabang</span></h3>
@@ -186,11 +337,11 @@
                     </div>
                   </div>
                   <div class="col-md-4 mb-4">
-                     <div class="card-kaca h-100">
-                      <h6 class="fw-bold mb-4 text-secondary"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Peringatan Stok Terendah</h6>
+                     <div class="card-kaca h-100" style="border-top: 4px solid #6366f1; background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);">
+                      <h6 class="fw-bold mb-4" style="color: #6366f1;"><i class="fa-solid fa-triangle-exclamation me-2"></i> Peringatan Stok Terendah</h6>
                       <div class="table-responsive">
                         <table class="table table-sm table-hover text-center align-middle" id="tabelStokRendahDash">
-                          <thead class="table-danger">
+                          <thead style="background-color: #c7d2fe; color: #3730a3;">
                             <tr>
                               <th>Cabang</th>
                               <th>Film</th>
@@ -206,15 +357,74 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- NEW ROW: SISTEM DETEKSI DINI & AUDIT -->
+                <div class="row mt-3">
+                  <div class="col-12 mb-3">
+                    <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fa-solid fa-shield-halved text-primary me-2"></i> Sistem Deteksi Dini & Audit Cabang (Pusat)</h6>
+                  </div>
+                  
+                  <!-- Panel 1: Alarm Kebocoran Stok -->
+                  <div class="col-12 mb-4">
+                     <div class="card-kaca h-100" style="border-top: 4px solid #ef4444; background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);">
+                      <h6 class="fw-bold mb-3" style="color: #ef4444;"><i class="fa-solid fa-boxes-stacked me-2"></i> Alarm 1: Indikasi Kebocoran & Reject</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-hover text-center align-middle" id="tabelAlarm1">
+                          <thead style="background-color: #fee2e2; color: #991b1b;">
+                            <tr>
+                              <th>Cabang</th>
+                              <th>Jenis Film</th>
+                              <th>[HARIAN] Dipakai</th>
+                              <th>[HARIAN] Rusak</th>
+                              <th>[STOK] Keluar Gudang</th>
+                              <th>[AUDIT 1] Selisih Lembar</th>
+                              <th>[AUDIT 2] % Reject</th>
+                              <th>Status Kesimpulan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr><td colspan="8" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data...</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Panel 2: Alarm Anomali Data Pasien -->
+                  <div class="col-12 mb-4">
+                     <div class="card-kaca h-100" style="border-top: 4px solid #f59e0b; background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);">
+                      <h6 class="fw-bold mb-3" style="color: #d97706;"><i class="fa-solid fa-users-slash me-2"></i> Alarm 2: Anomali Data Pasien</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-hover text-center align-middle" id="tabelAlarm2">
+                          <thead style="background-color: #fef3c7; color: #92400e;">
+                            <tr>
+                              <th>Cabang</th>
+                              <th>[LOGBOOK] Total Pasien</th>
+                              <th>[HARIAN] Total Pasien</th>
+                              <th>Selisih Pasien</th>
+                              <th>[HARIAN] Total Film Dipakai</th>
+                              <th>Rasio Film / Pasien</th>
+                              <th>Analisis Rasio</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr><td colspan="7" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data...</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Sub-tab 2: Pantauan Harian -->
               <div class="tab-pane fade" id="tab-harian-view" role="tabpanel">
-                <div class="card-kaca">
-                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-calendar-day me-2 text-primary"></i> Data Laporan Harian Terkini (Seluruh Cabang)</h6>
+                <div class="card-kaca" style="border-top: 4px solid #0d9488; background: linear-gradient(135deg, #ffffff 0%, #ccfbf1 100%);">
+                  <h6 class="fw-bold mb-3" style="color: #0d9488;"><i class="fa-solid fa-calendar-day me-2"></i> Data Laporan Harian Terkini (Seluruh Cabang)</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-striped table-hover align-middle text-center" id="tabelHarianDash">
-                      <thead class="table-primary">
+                      <thead style="background-color: #99f6e4; color: #115e59;">
                         <tr>
                           <th>Tanggal</th>
                           <th>Cabang</th>
@@ -236,11 +446,35 @@
 
               <!-- Sub-tab 3: Notifikasi Order -->
               <div class="tab-pane fade" id="tab-order-view" role="tabpanel">
-                <div class="card-kaca">
-                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i> Pengajuan Order Logistik dari Cabang</h6>
+                
+                <!-- DASHBOARD NOTIFIKASI ORDER -->
+                <div class="mb-4">
+                  <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-boxes-stacked me-2"></i> Total Order Logistik Per Cabang</h6>
+                  
+                  <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3 mb-4" id="orderCabangContainer">
+                    <!-- Digenerate oleh JS -->
+                  </div>
+                  
+                  <!-- SECTION DETAIL ORDER CABANG -->
+                  <div id="detailOrderCabang" class="d-none">
+                    <div class="card shadow-sm border-0 mb-4" style="border-top: 4px solid #3b82f6 !important;">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                          <h6 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-box-open text-primary me-2"></i> Rincian Order: <span id="titleDetailOrderCabang" class="text-dark">-</span></h6>
+                        </div>
+                        <ul class="list-group list-group-flush" id="listRincianOrder">
+                          <!-- JS -->
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-kaca" style="border-top: 4px solid #3b82f6; background: linear-gradient(135deg, #ffffff 0%, #dbeafe 100%);">
+                  <h6 class="fw-bold mb-3" style="color: #3b82f6;"><i class="fa-solid fa-cart-shopping me-2"></i> Pengajuan Order Logistik dari Cabang</h6>
                   <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle text-center" id="tabelOrderDash">
-                      <thead class="table-info">
+                      <thead style="background-color: #bfdbfe; color: #1e40af;">
                         <tr>
                           <th>Tanggal Order</th>
                           <th>Cabang Asal</th>
@@ -266,12 +500,14 @@
                     <table class="table table-sm table-bordered table-hover align-middle text-center" id="tabelInventoriDash">
                       <thead class="table-secondary">
                         <tr>
-                          <th>Cabang</th>
                           <th>Kategori Aset</th>
+                          <th>Cabang</th>
                           <th>Merk / Tipe Barang</th>
                           <th>Nomor Seri (S/N)</th>
                           <th>Tahun Pengadaan</th>
                           <th>Kondisi Alat</th>
+                          <th>Keterangan / Laporan</th>
+                          <th>Foto Arsip</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1530,6 +1766,52 @@
 
   <!-- Javascript Library -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <!-- Modal Rincian Film Rijek -->
+  <div class="modal fade" id="modalRejectDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" style="border-radius: 1rem; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <div class="modal-header bg-warning text-dark border-0">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-trash-can me-2"></i> Rincian Film Rijek (Bulan Ini)</h5>
+          <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body bg-light p-4">
+          <div class="row">
+            <div class="col-md-5 mb-4">
+              <h6 class="fw-bold text-secondary mb-3 d-flex align-items-center justify-content-between" id="judulRijekJenis">
+                <span><i class="fa-solid fa-layer-group me-2"></i> Berdasarkan Jenis Film</span>
+              </h6>
+              <div class="table-responsive" id="wrapperRijekJenis" style="transition: opacity 0.2s ease-in-out;">
+                <table class="table table-sm table-bordered bg-white text-center" id="tabelRijekJenis">
+                  <thead class="table-warning">
+                    <tr><th>Jenis Film</th><th>Total Rijek (Lembar)</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-7 mb-4">
+              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-hospital-user me-2"></i> Berdasarkan Cabang</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered bg-white text-center" id="tabelRijekCabang">
+                  <thead class="table-warning">
+                    <tr><th>Cabang</th><th>Total Rijek (Lembar)</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-warning text-center fw-bold mb-0 shadow-sm" style="border-left: 5px solid #d97706;">
+            Grand Total Rijek Keseluruhan: <span id="grandTotalRijek" class="fs-4 ms-2 text-danger">0</span> Lembar
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light justify-content-center">
+          <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill shadow-sm" data-bs-dismiss="modal">Tutup Rincian</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
