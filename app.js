@@ -2527,11 +2527,13 @@ function prosesUploadInventori() {
       }
       
       callAPI("uploadFotoInventori", {
-        idAsset: idAsset,
-        cabang: cabang,
-        filename: idAsset + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
-        mimeType: result.type,
-        base64Data: result.base64
+        data: {
+          idAsset: idAsset,
+          cabang: cabang,
+          filename: idAsset + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
+          mimeType: result.type,
+          base64Data: result.base64
+        }
       }).then(handleResponseInventori).catch(handleErrorInventori);
     });
   }
