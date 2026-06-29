@@ -46,21 +46,21 @@ function renderLogbookCabangCards() {
      
      // Logika warna degradasi modern untuk setiap cabang
      var c = cabang.toUpperCase().trim();
-     var bg = "linear-gradient(135deg, #1e293b, #475569)"; // Default gray gradient
+     var bg = "#334155"; // Default gray
      var color = "#ffffff";
      
      if (c.includes("KDI")) bg = "linear-gradient(135deg, #1e3a8a, #3b82f6)"; // Biru
-     else if (c.includes("MKS")) bg = "linear-gradient(135deg, #991b1b, #ef4444)"; // Merah
-     else if (c.includes("BJM")) bg = "linear-gradient(135deg, #4d7c0f, #84cc16)"; // Hijau Muda
-     else if (c.includes("PLU")) { bg = "linear-gradient(135deg, #ca8a04, #fde047)"; color = "#000000"; } // Kuning (Teks Hitam)
-     else if (c.includes("GTO")) bg = "linear-gradient(135deg, #14532d, #22c55e)"; // Hijau Tua
-     else if (c.includes("MND")) bg = "linear-gradient(135deg, #c2410c, #f97316)"; // Oranye Cerah
-     else if (c.includes("LWK")) bg = "linear-gradient(135deg, #be185d, #f472b6)"; // Pink
-     else if (c.includes("BHD") || c.includes("DIHD")) bg = "linear-gradient(135deg, #5c2e0e, #a0522d)"; // Coklat
-     else if (c.includes("KLK")) bg = "linear-gradient(135deg, #1e293b, #475569)"; // Abu-abu gelap
-     else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #111827, #6b7280)"; // Hitam/Abu
-     else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0369a1, #2dd4bf)"; // Biru Teal
-     else if (c.includes("BUB")) bg = "linear-gradient(135deg, #9a3412, #ea580c)"; // Oranye Bata
+     else if (c.includes("MKS")) bg = "#ef4444"; // Merah
+     else if (c.includes("BJM")) bg = "#76b900"; // Hijau Muda
+     else if (c.includes("PLU")) { bg = "#eab308"; color = "#000000"; } // Kuning (Teks Hitam)
+     else if (c.includes("GTO")) bg = "#166534"; // Hijau Tua
+     else if (c.includes("MND")) bg = "#f97316"; // Oranye Cerah
+     else if (c.includes("LWK")) bg = "#ec4899"; // Pink
+     else if (c.includes("BHD") || c.includes("DIHD")) bg = "#8b4513"; // Coklat
+     else if (c.includes("KLK")) bg = "#334155"; // Abu-abu gelap
+     else if (c.includes("MMJ")) bg = "#111827"; // Hitam
+     else if (c.includes("PLK")) bg = "#0ea5e9"; // Biru Teal
+     else if (c.includes("BUB")) bg = "#ea580c"; // Oranye Bata
      
      var cardHtml = `
        <div class="col">
@@ -272,8 +272,8 @@ function getBadgeCabang(cabang) {
     else if (c.includes("LWK")) bg = "#ec4899";
     else if (c.includes("BHD") || c.includes("DIHD")) bg = "#8b4513";
     else if (c.includes("KLK")) bg = "#334155";
-    else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #000000, #6b7280)";
-    else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0ea5e9, #10b981)";
+    else if (c.includes("MMJ")) bg = "#111827";
+    else if (c.includes("PLK")) bg = "#0ea5e9";
     else if (c.includes("BUB")) bg = "#ea580c";
     return '<span class="badge" style="background:' + bg + '; color:' + color + '; font-weight:700; padding:6px 10px; border-radius:6px; letter-spacing:0.5px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">' + cabang + '</span>';
 }
@@ -906,21 +906,21 @@ function renderOrderCabangCards(dataOrder) {
      
      // Logika warna degradasi persis seperti Logbook
      var c = cabang.toUpperCase().trim();
-     var bg = "linear-gradient(135deg, #1e293b, #475569)";
+     var bg = "#334155";
      var color = "#ffffff";
      
      if (c.includes("KDI")) bg = "linear-gradient(135deg, #1e3a8a, #3b82f6)";
-     else if (c.includes("MKS")) bg = "linear-gradient(135deg, #991b1b, #ef4444)";
-     else if (c.includes("BJM")) bg = "linear-gradient(135deg, #4d7c0f, #84cc16)";
-     else if (c.includes("PLU")) { bg = "linear-gradient(135deg, #ca8a04, #fde047)"; color = "#000000"; }
-     else if (c.includes("GTO")) bg = "linear-gradient(135deg, #14532d, #22c55e)";
-     else if (c.includes("MND")) bg = "linear-gradient(135deg, #c2410c, #f97316)";
-     else if (c.includes("LWK")) bg = "linear-gradient(135deg, #be185d, #f472b6)";
-     else if (c.includes("BHD") || c.includes("DIHD")) bg = "linear-gradient(135deg, #5c2e0e, #a0522d)";
-     else if (c.includes("KLK")) bg = "linear-gradient(135deg, #1e293b, #475569)";
-     else if (c.includes("MMJ")) bg = "linear-gradient(135deg, #111827, #6b7280)";
-     else if (c.includes("PLK")) bg = "linear-gradient(135deg, #0369a1, #2dd4bf)";
-     else if (c.includes("BUB")) bg = "linear-gradient(135deg, #9a3412, #ea580c)";
+     else if (c.includes("MKS")) bg = "#ef4444";
+     else if (c.includes("BJM")) bg = "#76b900";
+     else if (c.includes("PLU")) { bg = "#eab308"; color = "#000000"; }
+     else if (c.includes("GTO")) bg = "#166534";
+     else if (c.includes("MND")) bg = "#f97316";
+     else if (c.includes("LWK")) bg = "#ec4899";
+     else if (c.includes("BHD") || c.includes("DIHD")) bg = "#8b4513";
+     else if (c.includes("KLK")) bg = "#334155";
+     else if (c.includes("MMJ")) bg = "#111827";
+     else if (c.includes("PLK")) bg = "#0ea5e9";
+     else if (c.includes("BUB")) bg = "#ea580c";
      
      var cardHtml = `
        <div class="col">
@@ -1860,8 +1860,8 @@ function loadPeralatanMCU() {
         else if (cUpper.includes("LWK")) { bgColor = "#ec4899"; borderColor = "#ec4899"; }
         else if (cUpper.includes("BHD") || cUpper.includes("DIHD")) { bgColor = "#8b4513"; borderColor = "#8b4513"; }
         else if (cUpper.includes("KLK")) { bgColor = "#334155"; borderColor = "#334155"; }
-        else if (cUpper.includes("MMJ")) { bgColor = "linear-gradient(135deg, #000000, #6b7280)"; borderColor = "#000000"; }
-        else if (cUpper.includes("PLK")) { bgColor = "linear-gradient(135deg, #0ea5e9, #10b981)"; borderColor = "#0ea5e9"; }
+        else if (cUpper.includes("MMJ")) { bgColor = "#111827"; borderColor = "#000000"; }
+        else if (cUpper.includes("PLK")) { bgColor = "#0ea5e9"; borderColor = "#0ea5e9"; }
         else if (cUpper.includes("BUB")) { bgColor = "#ea580c"; borderColor = "#ea580c"; }
         else { bgColor = "#e2e8f0"; txtColor = "#334155"; borderColor = "#cbd5e1"; }
 
