@@ -2469,6 +2469,12 @@ function bukaModalUploadInventori(idAsset, cabang) {
   document.getElementById("uploadInventoriIdAsset").value = idAsset;
   document.getElementById("uploadInventoriCabang").value = cabang;
   document.getElementById("inputFileInventori").value = "";
+  // Reset tombol agar tidak tertinggal state loading dari upload sebelumnya
+  var btnSave = document.querySelector("#modalUploadInventori .btn-warning");
+  if (btnSave) {
+    btnSave.innerHTML = '<i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload';
+    btnSave.disabled = false;
+  }
   var modal = new bootstrap.Modal(document.getElementById('modalUploadInventori'));
   modal.show();
 }
@@ -2520,15 +2526,12 @@ function prosesUploadInventori() {
         return;
       }
       
-      callAPI("POST", {
-        action: "uploadFotoInventori",
-        data: {
-          idAsset: idAsset,
-          cabang: cabang,
-          filename: idAsset + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
-          mimeType: result.type,
-          base64Data: result.base64
-        }
+      callAPI("uploadFotoInventori", {
+        idAsset: idAsset,
+        cabang: cabang,
+        filename: idAsset + "_" + (result.type === 'image/jpeg' ? file.name.split('.')[0] + ".jpg" : file.name),
+        mimeType: result.type,
+        base64Data: result.base64
       }).then(handleResponseInventori).catch(handleErrorInventori);
     });
   }
