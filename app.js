@@ -168,18 +168,32 @@ function openLogbookDetail(cabang) {
            var errorClass = numErr > 5 ? "text-danger fw-bold" : "text-success fw-bold";
            var safeStatus = String(f.statusAudit || "");
            var statusIcon = safeStatus.toUpperCase().includes("AMAN") ? '<i class="fa-solid fa-circle-check text-success"></i>' : '<i class="fa-solid fa-triangle-exclamation text-warning"></i>';
-           htmlRekap3Film += `
-             <tr>
-               <td class="text-start fw-bold text-secondary">${f.modalitas}</td>
-               <td>${f.jenisFilm}</td>
-               <td>${f.pasienMasuk}</td>
-               <td>${f.tidakCetak}</td>
-               <td>${f.aktualTerpakai}</td>
-               <td class="fw-bold text-danger">${f.filmRijek}</td>
-               <td class="${errorClass}">${displayErr}</td>
-               <td>${statusIcon} ${safeStatus}</td>
-             </tr>
-           `;
+           if(f.isTotal) {
+               htmlRekap3Film += `
+                 <tr class="table-warning fw-bold">
+                   <td colspan="2" class="text-end">TOTAL KESELURUHAN</td>
+                   <td>${f.pasienMasuk}</td>
+                   <td>${f.tidakCetak}</td>
+                   <td>${f.aktualTerpakai}</td>
+                   <td class="text-danger">${f.filmRijek}</td>
+                   <td class="${errorClass}">${displayErr}</td>
+                   <td>${safeStatus}</td>
+                 </tr>
+               `;
+           } else {
+               htmlRekap3Film += `
+                 <tr>
+                   <td class="text-start fw-bold text-secondary">${f.modalitas}</td>
+                   <td>${f.jenisFilm}</td>
+                   <td>${f.pasienMasuk}</td>
+                   <td>${f.tidakCetak}</td>
+                   <td>${f.aktualTerpakai}</td>
+                   <td class="fw-bold text-danger">${f.filmRijek}</td>
+                   <td class="${errorClass}">${displayErr}</td>
+                   <td>${statusIcon} ${safeStatus}</td>
+                 </tr>
+               `;
+           }
         });
      } else {
         htmlRekap3Film = `<tr><td colspan="8" class="text-muted">Data REKAP_3 (Audit Pemakaian) belum tersedia. Silakan lakukan sinkronisasi ulang.</td></tr>`;
@@ -236,7 +250,7 @@ function syncLogbookManual() {
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbxK66K44nY4lzgFzT4Q3s1kx_PdGovI02RR_fPwlQBwcE9rbZjoxsJylc4ZFKZhjCYh/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxeGMK7EN82s2CRcWNcf6wJepmmfPZfJmDg61hWRxnwlhkR8vBLAvRnFx4N3F5FZFRx/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)

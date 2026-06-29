@@ -1410,8 +1410,19 @@ function syncLogbookCabang() {
             
             if(aVal !== "") currentModT2 = aVal;
             
-            // Lewati jika kosong atau tulisan TOTAL
-            if(currentModT2 !== "" && bVal !== "" && bVal.toUpperCase() !== "TOTAL") {
+            if(aVal.toUpperCase() === "TOTAL") {
+               table2Film.push({
+                  modalitas: "TOTAL",
+                  jenisFilm: "",
+                  pasienMasuk: isNaN(cVal) ? 0 : cVal,
+                  tidakCetak: isNaN(dVal) ? 0 : dVal,
+                  aktualTerpakai: isNaN(eVal) ? 0 : eVal,
+                  filmRijek: isNaN(fVal) ? 0 : fVal,
+                  errorRate: gVal,
+                  statusAudit: hVal,
+                  isTotal: true
+               });
+            } else if(currentModT2 !== "" && bVal !== "" && bVal.toUpperCase() !== "TOTAL") {
                table2Film.push({
                   modalitas: currentModT2,
                   jenisFilm: bVal,
@@ -1420,7 +1431,8 @@ function syncLogbookCabang() {
                   aktualTerpakai: isNaN(eVal) ? 0 : eVal,
                   filmRijek: isNaN(fVal) ? 0 : fVal,
                   errorRate: gVal, // Format persentase di-handle di frontend
-                  statusAudit: hVal
+                  statusAudit: hVal,
+                  isTotal: false
                });
             }
           }
