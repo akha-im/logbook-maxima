@@ -2317,7 +2317,7 @@ function compressImageAndGetBase64(file, maxSizeMB, callback) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      var quality = 0.84; // Setelan agresif hemat memori (84%)
+      var quality = 0.85; // Setelan kualitas 85%
       var dataUrl = canvas.toDataURL('image/jpeg', quality);
       var base64 = dataUrl.split(',')[1];
       var approxSizeKB = (base64.length * 0.75) / 1024;
