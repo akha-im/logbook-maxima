@@ -28,7 +28,10 @@ function doGet(e) {
     
     switch(action) {
       case "getDashboardData":
-        responseData = getDashboardData();
+        responseData = getDashboardData(e.parameter.bulan);
+        break;
+      case "getDasborCabangData":
+        responseData = getDasborCabangData(cabang, e.parameter.bulan);
         break;
       case "getHarian":
         responseData = getHarianMiniData(cabang);
@@ -88,7 +91,9 @@ function doGet(e) {
 }
 
 function doPost(e) {
+  var lock = LockService.getScriptLock();
   try {
+    lock.waitLock(30000); // Tunggu sampai 30 detik agar tidak tabrakan
     var postData = JSON.parse(e.postData.contents);
     var action = postData.action;
     var data = postData.data;
@@ -153,6 +158,8 @@ function doPost(e) {
     return respondJSON(result);
   } catch(err) {
     return respondError(err.message);
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -425,7 +432,7 @@ function konfirmasiTerimaBarangDenganCatatan(rowIdx, catatan) {
 // [MESIN-500] FUNGSI PENARIKAN DATA (READ FROM SHEET)
 // =========================================================================
 
-function getDashboardData() {
+function getDashboardData(paramBulan) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = {
     ringkasan: { pasien: 0, film: 0, rijek: 0, order: 0, cr: 0 },
@@ -443,6 +450,9 @@ function getDashboardData() {
 
   var currentMonth = new Date().getMonth();
   var currentYear = new Date().getFullYear();
+  if (paramBulan !== undefined && paramBulan !== "") {
+    currentMonth = parseInt(paramBulan);
+  }
 
   // 1. Laporan Harian
   try {
@@ -681,6 +691,163 @@ function getDashboardData() {
     }
   } catch(e) {}
 
+  return data;
+}
+function getDasborCabangData(cabang, paramBulan) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var data = {
+    ringkasan: { pasien: 0, film: 0, rijek: 0, order: 0 },
+    chartHarian: { labels: [], pasien: [], film: [], rijek: [] },
+    stokRendah: [],
+    laporanServis: []
+  };
+  
+  var currentMonth = new Date().getMonth();
+  var currentYear = new Date().getFullYear();
+  var isDefaultMonth = false;
+  
+  if (paramBulan !== undefined && paramBulan !== "") {
+    currentMonth = parseInt(paramBulan);
+  } else {
+    isDefaultMonth = true;
+  }
+  
+  var valsHarian = [];
+  try {
+    var sheetHarian = ss.getSheetByName("Log_Harian_Film");
+    if(sheetHarian && sheetHarian.getLastRow() > 1) {
+      valsHarian = sheetHarian.getDataRange().getValues();
+      if(isDefaultMonth) {
+        // Cari bulan terakhir yang ada datanya untuk cabang ini, khusus jika bulan default
+        for(var i = valsHarian.length - 1; i >= 1; i--) {
+          var row = valsHarian[i];
+          if(!row[1] || row[2] !== cabang) continue;
+          var tglAsli = new Date(row[1]);
+          if(!isNaN(tglAsli.getTime())) {
+            currentMonth = tglAsli.getMonth();
+            currentYear = tglAsli.getFullYear();
+            break;
+          }
+        }
+      }
+    }
+  } catch(e) {}
+  
+  // Set chart labels to days 1..31
+  var maxDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+  for(var d=1; d<=maxDays; d++) {
+    data.chartHarian.labels.push(d);
+    data.chartHarian.pasien.push(0);
+    data.chartHarian.film.push(0);
+    data.chartHarian.rijek.push(0);
+  }
+  
+  // 1. Log Harian Film (Tarik data untuk chart)
+  try {
+    if(valsHarian.length > 1) {
+      for(var i = valsHarian.length - 1; i >= 1; i--) {
+        var row = valsHarian[i];
+        if(!row[1] || row[2] !== cabang) continue;
+        
+        var tglAsli = new Date(row[1]);
+        if(!isNaN(tglAsli.getTime()) && tglAsli.getMonth() === currentMonth && tglAsli.getFullYear() === currentYear) {
+          var p1 = Number(row[4]) || 0;
+          var p2 = Number(row[5]) || 0;
+          var terpakai = Number(row[6]) || 0;
+          var rijek = Number(row[7]) || 0;
+          
+          var day = tglAsli.getDate();
+          var idx = day - 1;
+          data.chartHarian.pasien[idx] += (p1 + p2);
+          data.chartHarian.film[idx] += terpakai;
+          data.chartHarian.rijek[idx] += rijek;
+        }
+      }
+    }
+  } catch(e) {}
+  
+  // 1b. Ambil Ringkasan dari Data_Sync_Logbook (Sesuai Dashboard Logbook)
+  try {
+    var syncSheet = ss.getSheetByName("Data_Sync_Logbook");
+    if(syncSheet) {
+      var syncData = syncSheet.getDataRange().getValues();
+      for(var s = 1; s < syncData.length; s++) {
+        if(syncData[s][0] === cabang) {
+          var parsed = JSON.parse(syncData[s][2]);
+          data.ringkasan.pasien = parsed.grandTotal || 0;
+          data.ringkasan.film = (parsed.totalFilm && parsed.totalFilm.terpakai) ? parsed.totalFilm.terpakai : 0;
+          data.ringkasan.rijek = (parsed.totalFilm && parsed.totalFilm.rijek) ? parsed.totalFilm.rijek : 0;
+          break;
+        }
+      }
+    }
+  } catch(e) {}
+  
+  // 2. Order Logistik
+  try {
+    var sheetOrder = ss.getSheetByName("Log_Order_Barang");
+    if(sheetOrder && sheetOrder.getLastRow() > 1) {
+      var valsOrd = sheetOrder.getDataRange().getValues();
+      for(var j = valsOrd.length - 1; j >= 1; j--) {
+        var rowOrd = valsOrd[j];
+        if(!rowOrd[1] || rowOrd[2] !== cabang) continue;
+        
+        var tglOrd = new Date(rowOrd[1]);
+        if(!isNaN(tglOrd.getTime()) && tglOrd.getMonth() === currentMonth && tglOrd.getFullYear() === currentYear) {
+          data.ringkasan.order++;
+        }
+      }
+    }
+  } catch(e) {}
+  
+  // 3. Peringatan Stok Terendah (Semua Cabang, Sesuai Dasbor Pusat)
+  try {
+    var valsStok = ss.getSheetByName("Log_Stok_Film").getDataRange().getValues();
+    var tracker = {};
+    for(var p = 1; p < valsStok.length; p++) {
+      if (valsStok[p][3] !== cabang) continue; // Filter hanya untuk cabang ini
+      var cKey = valsStok[p][3] + "_" + valsStok[p][4]; 
+      tracker[cKey] = { 
+        cabang: valsStok[p][3], 
+        jenis: valsStok[p][4], 
+        sisaLembar: Number(valsStok[p][7]) || 0 
+      };
+    }
+    for (var key in tracker) {
+      var item = tracker[key];
+      var pembagi = item.jenis.indexOf("8x10") !== -1 || item.jenis.indexOf("10x14") !== -1 ? 150 : 100;
+      var sisaBox = (item.sisaLembar / pembagi).toFixed(1); 
+      data.stokRendah.push({
+        cabang: item.cabang,
+        jenis: item.jenis,
+        sisaBox: Number(sisaBox),
+        sisaLembar: item.sisaLembar
+      });
+    }
+    data.stokRendah.sort(function(a, b) { return a.sisaBox - b.sisaBox; });
+  } catch(e) {}
+  
+  // 4. Laporan Servis (10 terakhir untuk cabang ini)
+  try {
+    var sheetServis = ss.getSheetByName("Log_Servis_Alat");
+    if(sheetServis && sheetServis.getLastRow() > 1) {
+      var valsSrv = sheetServis.getDataRange().getValues();
+      for(var s = valsSrv.length - 1; s >= 1; s--) {
+        var rSrv = valsSrv[s];
+        if(rSrv[2] === cabang) {
+          data.laporanServis.push({
+            tanggal: formatTanggalAman(rSrv[1]),
+            namaAlat: rSrv[3],
+            keluhan: rSrv[4],
+            status: rSrv[7] || "Dilaporkan"
+          });
+          if(data.laporanServis.length >= 10) break;
+        }
+      }
+    }
+  } catch(e) {}
+  
   return data;
 }
 

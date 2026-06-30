@@ -58,7 +58,8 @@
           </div>
           
           <div class="nav flex-column" id="menuSidebar">
-            <a class="nav-link active" id="menuDashboard" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a class="nav-link active" id="menuDashboard" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard Pusat</a>
+            <a class="nav-link" id="menuDasborCabang" onclick="switchTab('dasbor-cabang', this); panggilJikaBelum('dasborCabang', function(){ loadDasborCabangData(); })" style="display: none;"><i class="fa-solid fa-house-chimney-medical"></i> Dasbor Cabang</a>
             <a class="nav-link" id="menuHarian" onclick="switchTab('harian-film', this); panggilJikaBelum('harian', function(){ loadHarianData(); })"><i class="fa-solid fa-calendar-day"></i> Input Harian & Rijek</a>
             <a class="nav-link" id="menuStok" onclick="switchTab('stok-film', this); panggilJikaBelum('stok', function(){ loadStokData(); })"><i class="fa-solid fa-clipboard-check"></i> Opname Stok Bulanan</a>
             <a class="nav-link" id="menuLogbook" onclick="switchTab('logbook-pasien', this); panggilJikaBelum('logbook', function(){ loadLogbookPasienData(); })"><i class="fa-solid fa-users"></i> Logbook Pasien</a>
@@ -96,23 +97,43 @@
           <div id="dashboard" class="content-section active">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
               <h4 class="mb-3 mb-md-0 fw-bold"><i class="fa-solid fa-chart-line text-primary me-2"></i> Executive Dashboard</h4>
-              <div class="input-group w-auto shadow-sm">
-                <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-filter"></i></span>
-                <select class="form-select fw-bold border-secondary text-primary" id="filterDashboard" onchange="updateDashboardView()">
-                  <option value="ALL">📍 Tampilkan Keseluruhan (Semua Cabang)</option>
-                  <option value="MXM-KDI">🏢 MXM-KDI (Kendari - Pusat)</option>
-                  <option value="MXM-MKS">🏢 MXM-MKS (Makassar)</option>
-                  <option value="MXM-PLU">🏢 MXM-PLU (Palu)</option>
-                  <option value="MXM-GTO">🏢 MXM-GTO (Gorontalo)</option>
-                  <option value="MXM-MND">🏢 MXM-MND (Manado)</option>
-                  <option value="MXM-LWK">🏢 MXM-LWK (Luwuk)</option>
-                  <option value="MXM-BHD">🏢 MXM-BHD (Bahodopi)</option>
-                  <option value="MXM-BUB">🏢 MXM-BUB (Bau-Bau)</option>
-                  <option value="MXM-BJM">🏢 MXM-BJM (Banjarmasin)</option>
-                  <option value="MXM-KLK">🏢 MXM-KLK (Kolaka)</option>
-                  <option value="MXM-MMJ">🏢 MXM-MMJ (Mamuju)</option>
-                  <option value="MXM-PLK">🏢 MXM-PLK (Palangkaraya)</option>
-                </select>
+              <div class="d-flex flex-wrap gap-2">
+                <div class="input-group w-auto shadow-sm">
+                  <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-calendar-alt"></i></span>
+                  <select class="form-select fw-bold border-secondary text-primary" id="filterBulanDashboard" onchange="refreshDashboard()">
+                    <option value="">📅 Bulan Berjalan</option>
+                    <option value="0">Januari</option>
+                    <option value="1">Februari</option>
+                    <option value="2">Maret</option>
+                    <option value="3">April</option>
+                    <option value="4">Mei</option>
+                    <option value="5">Juni</option>
+                    <option value="6">Juli</option>
+                    <option value="7">Agustus</option>
+                    <option value="8">September</option>
+                    <option value="9">Oktober</option>
+                    <option value="10">November</option>
+                    <option value="11">Desember</option>
+                  </select>
+                </div>
+                <div class="input-group w-auto shadow-sm">
+                  <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-filter"></i></span>
+                  <select class="form-select fw-bold border-secondary text-primary" id="filterDashboard" onchange="updateDashboardView()">
+                    <option value="ALL">📍 Tampilkan Keseluruhan (Semua Cabang)</option>
+                    <option value="MXM-KDI">🏢 MXM-KDI (Kendari - Pusat)</option>
+                    <option value="MXM-MKS">🏢 MXM-MKS (Makassar)</option>
+                    <option value="MXM-PLU">🏢 MXM-PLU (Palu)</option>
+                    <option value="MXM-GTO">🏢 MXM-GTO (Gorontalo)</option>
+                    <option value="MXM-MND">🏢 MXM-MND (Manado)</option>
+                    <option value="MXM-LWK">🏢 MXM-LWK (Luwuk)</option>
+                    <option value="MXM-BHD">🏢 MXM-BHD (Bahodopi)</option>
+                    <option value="MXM-BUB">🏢 MXM-BUB (Bau-Bau)</option>
+                    <option value="MXM-BJM">🏢 MXM-BJM (Banjarmasin)</option>
+                    <option value="MXM-KLK">🏢 MXM-KLK (Kolaka)</option>
+                    <option value="MXM-MMJ">🏢 MXM-MMJ (Mamuju)</option>
+                    <option value="MXM-PLK">🏢 MXM-PLK (Palangkaraya)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -612,6 +633,97 @@
               </div> 
             </div> 
           </div> 
+
+          <!-- =========================================================================
+               TAB DASBOR CABANG
+               ========================================================================= -->
+          <div id="dasbor-cabang" class="content-section">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
+              <h4 class="mb-3 mb-md-0 fw-bold"><i class="fa-solid fa-house-chimney-medical text-primary me-2"></i> Dasbor Cabang Khusus</h4>
+              <div class="input-group w-auto shadow-sm">
+                <span class="input-group-text bg-dark border-secondary text-primary"><i class="fa-solid fa-calendar-alt"></i></span>
+                <select class="form-select fw-bold border-secondary text-primary" id="filterBulanDasborCabang" onchange="loadDasborCabangData()">
+                  <option value="">📅 Bulan Berjalan</option>
+                  <option value="0">Januari</option>
+                  <option value="1">Februari</option>
+                  <option value="2">Maret</option>
+                  <option value="3">April</option>
+                  <option value="4">Mei</option>
+                  <option value="5">Juni</option>
+                  <option value="6">Juli</option>
+                  <option value="7">Agustus</option>
+                  <option value="8">September</option>
+                  <option value="9">Oktober</option>
+                  <option value="10">November</option>
+                  <option value="11">Desember</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Kartu Ringkasan Cabang -->
+            <div class="row text-center mb-4">
+              <div class="col-md-3 col-6 mb-3">
+                <div class="card-kaca hover-scale h-100 d-flex flex-column justify-content-center p-3" style="border-top: 4px solid #22c55e;">
+                  <h6 class="text-secondary fw-bold mb-2">Total Ekspose (Bulan Ini)</h6>
+                  <h3 class="fw-bold mb-0" id="dashCabangPasien">
+                    - <span class="fs-6 text-success"><i class="fa-solid fa-user"></i></span>
+                  </h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3">
+                <div class="card-kaca hover-scale h-100 d-flex flex-column justify-content-center p-3" style="border-top: 4px solid #3b82f6;">
+                  <h6 class="text-secondary fw-bold mb-2">Film Yang Terpakai (Lbr)</h6>
+                  <h3 class="fw-bold mb-0" id="dashCabangFilm">
+                    - <span class="fs-6 text-primary"><i class="fa-solid fa-film"></i></span>
+                  </h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3">
+                <div class="card-kaca hover-scale h-100 d-flex flex-column justify-content-center p-3" style="border-top: 4px solid #f59e0b;">
+                  <h6 class="text-secondary fw-bold mb-2">Film Rijek (Lbr)</h6>
+                  <h3 class="fw-bold mb-0" id="dashCabangRijek">
+                    - <span class="fs-6 text-warning"><i class="fa-solid fa-trash-can"></i></span>
+                  </h3>
+                </div>
+              </div>
+              <div class="col-md-3 col-6 mb-3">
+                <div class="card-kaca hover-scale h-100 d-flex flex-column justify-content-center p-3" style="border-top: 4px solid #64748b;">
+                  <h6 class="text-secondary fw-bold mb-2">Order Barang</h6>
+                  <h3 class="fw-bold mb-0" id="dashCabangOrder">
+                    - <span class="fs-6 text-muted">Item</span>
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <!-- Kolom Kiri: Grafik Harian & Laporan Servis -->
+              <div class="col-md-8 mb-3 d-flex flex-column gap-3">
+                <div class="card-kaca p-3">
+                  <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-chart-line me-2 text-primary"></i> Tren Harian Cabang (Pasien vs Film)</h6>
+                  <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartPertumbuhanCabang"></canvas>
+                  </div>
+                </div>
+                <!-- Servis Alat -->
+                <div class="card-kaca p-3 overflow-hidden" style="border-top: 4px solid #8b5cf6;">
+                  <h6 class="fw-bold mb-2 text-danger"><i class="fa-solid fa-wrench me-2"></i> Laporan Servis</h6>
+                  <div id="dashCabangServis" style="max-height: 140px; overflow-y: auto;">
+                    <div class="text-muted small">Memuat...</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Kolom Kanan: Stok Menipis (Bisa memanjang ke bawah) -->
+              <div class="col-md-4 mb-3 d-flex flex-column gap-3">
+                <div class="card-kaca p-3 flex-fill overflow-hidden" style="border-top: 4px solid #ef4444;">
+                  <h6 class="fw-bold mb-2 text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i> STOK FILM</h6>
+                  <div id="dashCabangStok" style="max-height: 480px; overflow-y: auto;">
+                    <div class="text-muted small">Memuat...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- =========================================================================
                TAB 2: INPUT HARIAN & RIJEK

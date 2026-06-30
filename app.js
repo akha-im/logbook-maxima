@@ -250,7 +250,7 @@ function syncLogbookManual() {
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbxeGMK7EN82s2CRcWNcf6wJepmmfPZfJmDg61hWRxnwlhkR8vBLAvRnFx4N3F5FZFRx/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxOS-G_U8dlP0r6eKSjkHmp0ldoZHxXG9kX7OMR0BQ8Zj7Y9TZ2LG8EDwqrFwgQ5-bL/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -312,6 +312,7 @@ async function callAPI(action, payload = {}) {
       url.searchParams.append("t", t);
       if (payload.cabang) url.searchParams.append("cabang", payload.cabang);
       if (payload.role) url.searchParams.append("role", payload.role);
+      if (payload.bulan !== undefined && payload.bulan !== "") url.searchParams.append("bulan", payload.bulan);
       
       var response = await fetch(url, { cache: "no-store" });
       if (!response.ok) throw new Error("Gagal mengambil data dari server: " + response.statusText);
@@ -361,7 +362,9 @@ function prosesLogin(e) {
 
         if (currentRole === 'Cabang') {
           document.getElementById('menuDashboard').style.display = 'none';
-          switchTab('harian-film', document.getElementById('menuHarian'));
+          document.getElementById('menuDasborCabang').style.display = 'block';
+          switchTab('dasbor-cabang', document.getElementById('menuDasborCabang'));
+          panggilJikaBelum('dasborCabang', function(){ loadDasborCabangData(); });
           document.getElementById('displayRole').innerHTML = '<i class="fa-solid fa-user-circle"></i> Cabang: ' + currentCabang;
           
           var filter = document.getElementById('filterDashboard');
@@ -524,7 +527,10 @@ function refreshDashboard() {
   window.memoriTabel = {}; // Hapus cache lokal
 
   // TAHAP 1: Ambil data ringkasan dashboard (GET request)
-  callAPI("GET", { action: "getDashboardData" })
+  var filterBulan = document.getElementById('filterBulanDashboard');
+  var bulanVal = filterBulan ? filterBulan.value : "";
+  
+  callAPI("GET", { action: "getDashboardData", bulan: bulanVal })
     .then(function(response) {
       masterData.labels = (response.chart.labels || masterData.labels).map(function(l) { return l === "MXM-GTL" ? "MXM-GTO" : l; });
       masterData.pasien = response.chart.pasien;
@@ -614,6 +620,127 @@ function panggilJikaBelum(kunciMenu, fungsiPenarikData) {
   } else {
     console.log("âš¡ MEMAKAI MEMORI CACHE: " + kunciMenu);
   }
+}
+
+let chartCabangInstance = null;
+
+function loadDasborCabangData() {
+  if (currentRole !== 'Cabang') return;
+  
+  var filterBulan = document.getElementById('filterBulanDasborCabang');
+  var bulanVal = filterBulan ? filterBulan.value : "";
+  
+  document.getElementById('dashCabangPasien').innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-4"></i>';
+  document.getElementById('dashCabangFilm').innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-4"></i>';
+  document.getElementById('dashCabangRijek').innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-4"></i>';
+  document.getElementById('dashCabangOrder').innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-4"></i>';
+  document.getElementById('dashCabangServis').innerHTML = '<div class="text-muted small"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</div>';
+  document.getElementById('dashCabangStok').innerHTML = '<div class="text-muted small"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</div>';
+
+  callAPI("GET", { action: "getDasborCabangData", cabang: currentCabang, bulan: bulanVal })
+    .then(function(res) {
+      document.getElementById('dashCabangPasien').innerHTML = res.ringkasan.pasien + ' <span class="fs-6 text-success"><i class="fa-solid fa-user"></i></span>';
+      document.getElementById('dashCabangFilm').innerHTML = res.ringkasan.film + ' <span class="fs-6 text-primary"><i class="fa-solid fa-film"></i></span>';
+      document.getElementById('dashCabangRijek').innerHTML = res.ringkasan.rijek + ' <span class="fs-6 text-warning"><i class="fa-solid fa-trash-can"></i></span>';
+      document.getElementById('dashCabangOrder').innerHTML = res.ringkasan.order + ' <span class="fs-6 text-muted">Item</span>';
+      
+      initDasborCabangChart(res.chartHarian);
+      
+      var servisHtml = "";
+      if(res.laporanServis.length === 0) {
+        servisHtml = '<div class="text-muted small">Tidak ada servis tercatat.</div>';
+      } else {
+        res.laporanServis.forEach(function(s) {
+          var bg = s.status === 'Selesai' ? 'text-success' : 'text-danger';
+          servisHtml += `<div class="mb-2 border-bottom pb-1"><div class="fw-bold text-dark" style="font-size:0.85rem">${s.namaAlat}</div><div class="text-muted" style="font-size:0.75rem">${s.tanggal} - ${s.keluhan} <span class="fw-bold ${bg}">[${s.status}]</span></div></div>`;
+        });
+      }
+      document.getElementById('dashCabangServis').innerHTML = servisHtml;
+      
+      var stokHtml = `<div class="table-responsive"><table class="table table-sm table-borderless m-0">
+        <thead><tr class="text-secondary border-bottom" style="font-size:0.8rem"><th>Cabang</th><th>Film</th><th>Sisa</th><th>Status</th></tr></thead>
+        <tbody>`;
+      if(res.stokRendah.length === 0) {
+        stokHtml += '<tr><td colspan="4" class="text-center small text-muted">Stok film cabang aman.</td></tr>';
+      } else {
+        res.stokRendah.forEach(function(s) {
+          var classBadge = (s.sisaBox <= 3.0) ? 'badge-glow-danger' : 'badge-glow-success';
+          var textStatus = (s.sisaBox <= 3.0) ? 'Waktunya Order' : 'Aman';
+          stokHtml += `<tr style="font-size:0.85rem" class="border-bottom">
+            <td class="fw-bold">${s.cabang}</td>
+            <td>${s.jenis}</td>
+            <td><span class="text-danger fw-bold">${s.sisaBox}</span> Box<br><small class="text-muted">(${s.sisaLembar} Lbr)</small></td>
+            <td><span class="badge ${classBadge}">${textStatus}</span></td>
+          </tr>`;
+        });
+      }
+      stokHtml += '</tbody></table></div>';
+      document.getElementById('dashCabangStok').innerHTML = stokHtml;
+    })
+    .catch(function(err) {
+      console.error(err);
+      alert("Gagal memuat data dasbor cabang.");
+    });
+}
+
+function initDasborCabangChart(chartData) {
+  const canvas = document.getElementById('chartPertumbuhanCabang');
+  if(!canvas) return; 
+  const ctx = canvas.getContext('2d');
+  
+  if (chartCabangInstance) {
+    chartCabangInstance.destroy();
+  }
+  
+  chartCabangInstance = new Chart(ctx, {
+    type: 'line', 
+    data: { 
+      labels: chartData.labels, 
+      datasets: [
+        { 
+          label: 'Pasien (Ekspose)', 
+          backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+          borderColor: '#22c55e', // Green
+          borderWidth: 1, // Garis tipis
+          tension: 0.4, // Sedikit renggang
+          fill: false,
+          data: chartData.pasien 
+        }, 
+        { 
+          label: 'Pemakaian Film (Lbr)', 
+          backgroundColor: 'rgba(30, 58, 138, 0.1)', 
+          borderColor: '#1e3a8a', // Dark Blue
+          borderWidth: 2,
+          borderDash: [5, 5],
+          tension: 0.3,
+          fill: false,
+          data: chartData.film 
+        },
+        { 
+          label: 'Film Rijek (Lbr)', 
+          backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+          borderColor: '#ef4444', // Red
+          borderWidth: 2,
+          borderDash: [2, 2],
+          tension: 0.2, // Paling melengkung patah agar tidak tertumpuk
+          fill: false,
+          data: chartData.rijek 
+        }
+      ] 
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { 
+        legend: { labels: { color: '#0f172a', font: { family: 'Outfit', size: 11 } } } 
+      },
+      scales: {
+        x: { grid: { color: 'rgba(15, 23, 42, 0.05)' }, ticks: { color: '#475569', font: { family: 'Outfit', size: 10 } } },
+        y: { beginAtZero: true, grid: { color: 'rgba(15, 23, 42, 0.05)' }, ticks: { color: '#475569', font: { family: 'Outfit', size: 10 } } }
+      }
+    }
+  });
 }
 
 function updateDashboardView() {
@@ -1020,36 +1147,51 @@ function renderTabelLogbook() {
 // =========================================================================
 // [LOGIKA-500] PENGIRIMAN DATA FORMULIR (SUBMIT HANDLERS)
 // =========================================================================
-function onSimpanSukses(btnId, notifId, formId, textAwal, iconAwal) {
+function onSimpanSukses(notifId) {
+  var notif = document.getElementById(notifId);
+  if(notif) {
+    notif.innerHTML = '<div class="alert alert-success mt-2"><i class="fa-solid fa-circle-check"></i> Data berhasil disimpan!</div>'; 
+    setTimeout(function() { notif.style.display = 'none'; }, 4000); 
+  }
+  // Dihapus: setTimeout(refreshDashboard, 1000) agar tidak memuat ulang semua menu.
+}
+
+function resetFormUI(btnId, notifId, formId, textAwal, iconAwal) {
   var btn = document.getElementById(btnId); 
   var notif = document.getElementById(notifId);
   
-  btn.innerHTML = '<i class="' + iconAwal + '"></i> ' + textAwal; 
-  btn.disabled = false;
+  if(btn) {
+    btn.innerHTML = '<i class="' + iconAwal + '"></i> ' + textAwal; 
+    btn.disabled = false;
+  }
+  if(notif) {
+    notif.innerHTML = '<div class="alert alert-info mt-2"><i class="fa-solid fa-spinner fa-spin ms-1"></i> Menyimpan ke server di latar...</div>'; 
+    notif.style.display = 'block';
+  }
   
-  notif.innerHTML = '<div class="alert alert-success mt-2"><i class="fa-solid fa-circle-check"></i> Data berhasil disimpan ke Google Sheets!</div>'; 
-  notif.style.display = 'block';
-  
-  document.getElementById(formId).reset(); 
-  window.onload(); // Reset tanggal ke hari ini
-  
+  var form = document.getElementById(formId);
+  if(form) form.reset(); 
+  if(typeof window.onload === 'function') window.onload();
   if(formId === 'formOrder') { toggleNamaBarang(); }
-  
-  setTimeout(function() { notif.style.display = 'none'; }, 4000); 
-  setTimeout(refreshDashboard, 1000);
 }
 
-function onSimpanError(error, btnId, textAwal, iconAwal) {
+function onSimpanError(error, btnId, notifId, textAwal, iconAwal) {
   var btn = document.getElementById(btnId); 
-  btn.innerHTML = '<i class="' + iconAwal + '"></i> ' + textAwal; 
-  btn.disabled = false;
-  alert("Gagal menyimpan data!\nKoneksi API Error: " + error.message);
+  var notif = document.getElementById(notifId);
+  if(btn) {
+    btn.innerHTML = '<i class="' + iconAwal + '"></i> ' + textAwal; 
+    btn.disabled = false;
+  }
+  if(notif) {
+    notif.innerHTML = '<div class="alert alert-danger mt-2"><i class="fa-solid fa-triangle-exclamation"></i> Gagal menyimpan: ' + error.message + '</div>';
+  }
 }
 
 function submitHarian(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitHarian'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifHarian';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1062,21 +1204,42 @@ function submitHarian(e) {
     rijekRusak: document.getElementById('rijekRusak').value, 
     keterangan: document.getElementById('keteranganRijek').value 
   };
+
+  // --- OPTIMISTIC UI ---
+  var tb = document.querySelector('#tabelMiniHarian tbody');
+  if(tb) {
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td>' + data.tanggal + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td class="fw-bold">' + data.jenisFilm + '</td>' +
+      '<td>' + (data.pasien1 || 0) + '</td>' +
+      '<td>' + (data.pasien2 || 0) + '</td>' +
+      '<td class="text-success fw-bold">' + (data.terpakaiNormal || 0) + '</td>' +
+      '<td class="text-danger fw-bold">' + (data.rijekRusak || 0) + '</td>' +
+      '<td class="text-start"><small>' + (data.keterangan || "-") + ' <i class="fa-solid fa-spinner fa-spin ms-1"></i></small></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formHarian', 'Simpan Laporan Harian', 'fa-solid fa-paper-plane');
   
   callAPI("simpanHarian", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifHarian', 'formHarian', 'Simpan Laporan Harian', 'fa-solid fa-paper-plane'); 
+      onSimpanSukses(notifId); 
       loadHarianData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Laporan Harian', 'fa-solid fa-paper-plane'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Laporan Harian', 'fa-solid fa-paper-plane'); 
+      loadHarianData();
     });
 }
 
 function submitStok(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitStok'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifStok';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1086,21 +1249,40 @@ function submitStok(e) {
     filmMasuk: document.getElementById('filmMasuk').value, 
     stokTerkini: document.getElementById('stokTerkini').value 
   };
+
+  var tb = document.querySelector('#tabelMiniStok tbody');
+  if(tb) {
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td>' + data.tanggalStok + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td class="fw-bold">' + data.jenisFilm + '</td>' +
+      '<td>-</td>' +
+      '<td class="text-success fw-bold">+' + (data.filmMasuk || 0) + '</td>' +
+      '<td class="text-primary fw-bold">' + (data.stokTerkini || 0) + '</td>' +
+      '<td class="text-danger fw-bold"><i class="fa-solid fa-spinner fa-spin"></i></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formStok', 'Simpan Data Opname (Kalkulasi Otomatis)', 'fa-solid fa-floppy-disk');
   
   callAPI("simpanStok", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifStok', 'formStok', 'Simpan Data Opname (Kalkulasi Otomatis)', 'fa-solid fa-floppy-disk'); 
+      onSimpanSukses(notifId); 
       loadStokData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Data Opname (Kalkulasi Otomatis)', 'fa-solid fa-floppy-disk'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Data Opname (Kalkulasi Otomatis)', 'fa-solid fa-floppy-disk'); 
+      loadStokData();
     });
 }
 
 function submitPasien(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitPasien'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifPasien';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var rows = document.querySelectorAll('#bodyLogbookPasien tr');
@@ -1118,21 +1300,40 @@ function submitPasien(e) {
     ctscanP: rows[4].getElementsByTagName('input')[0].value, 
     ctscanE: rows[4].getElementsByTagName('input')[1].value 
   };
+
+  var tb = document.querySelector('#tabelMiniLogbookPasien tbody');
+  if(tb) {
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td class="fw-bold">' + data.bulan + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td>' + (data.thoraksP||0) + ' / ' + (data.thoraksE||0) + '</td>' +
+      '<td>' + (data.musculoP||0) + ' / ' + (data.musculoE||0) + '</td>' +
+      '<td>' + (data.dentalP||0) + ' / ' + (data.dentalE||0) + '</td>' +
+      '<td>' + (data.panoramicP||0) + ' / ' + (data.panoramicE||0) + '</td>' +
+      '<td>' + (data.ctscanP||0) + ' / ' + (data.ctscanE||0) + '</td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formPasien', 'Simpan Data Rekap Bulanan', 'fa-solid fa-save');
   
   callAPI("simpanPasien", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifPasien', 'formPasien', 'Simpan Data Rekap Bulanan', 'fa-solid fa-save'); 
+      onSimpanSukses(notifId); 
       loadLogbookPasienData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Data Rekap Bulanan', 'fa-solid fa-save'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Data Rekap Bulanan', 'fa-solid fa-save'); 
+      loadLogbookPasienData();
     });
 }
 
 function submitOrder(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitOrder'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...'; 
+  var notifId = 'notifOrder';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var kat = document.getElementById('kategoriOrder').value; 
@@ -1146,21 +1347,40 @@ function submitOrder(e) {
     satuan: document.getElementById('satuanOrder').value, 
     keterangan: document.getElementById('keteranganOrder').value 
   };
+
+  var tb = document.querySelector('#tabelMiniOrder tbody');
+  if(tb) {
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td>' + data.tanggal + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td>' + data.kategori + '</td>' +
+      '<td class="fw-bold text-start text-dark">' + data.namaBarang + '</td>' +
+      '<td class="text-primary fw-bold">' + data.jumlah + ' ' + data.satuan + '</td>' +
+      '<td><span class="badge badge-glow-warning">Pending <i class="fa-solid fa-spinner fa-spin"></i></span></td>' +
+      '<td class="text-start"><small>' + (data.keterangan || "-") + '</small></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formOrder', 'Kirim Pengajuan Order', 'fa-solid fa-paper-plane');
   
   callAPI("simpanOrder", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifOrder', 'formOrder', 'Kirim Pengajuan Order', 'fa-solid fa-paper-plane'); 
+      onSimpanSukses(notifId); 
       loadOrderData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Kirim Pengajuan Order', 'fa-solid fa-paper-plane'); 
+      onSimpanError(err, btnId, notifId, 'Kirim Pengajuan Order', 'fa-solid fa-paper-plane'); 
+      loadOrderData();
     });
 }
 
 function submitServis(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitServis'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...'; 
+  var notifId = 'notifServis';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1171,21 +1391,41 @@ function submitServis(e) {
     detail: document.getElementById('detailKerusakan').value, 
     urgensi: document.getElementById('urgensiServis').value 
   };
+
+  var tb = document.querySelector('#tabelMiniServis tbody');
+  if(tb) {
+    var cu = (data.urgensi === 'Mendesak') ? 'text-danger fw-bold' : '';
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td>' + data.tanggal + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td class="fw-bold">' + data.idAlat + '</td>' +
+      '<td class="text-start"><small>' + data.detail + '</small></td>' +
+      '<td class="' + cu + '">' + data.urgensi + '</td>' +
+      '<td><span class="badge badge-glow-danger">Open <i class="fa-solid fa-spinner fa-spin"></i></span></td>' +
+      '<td>-</td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formServis', 'Kirim Tiket Servis', 'fa-solid fa-triangle-exclamation');
   
   callAPI("simpanServis", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifServis', 'formServis', 'Kirim Tiket Servis', 'fa-solid fa-triangle-exclamation'); 
+      onSimpanSukses(notifId); 
       loadServisData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Kirim Tiket Servis', 'fa-solid fa-triangle-exclamation'); 
+      onSimpanError(err, btnId, notifId, 'Kirim Tiket Servis', 'fa-solid fa-triangle-exclamation'); 
+      loadServisData();
     });
 }
 
 function submitInventori(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitInventori'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifInventori';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1197,21 +1437,44 @@ function submitInventori(e) {
     kondisi: document.getElementById('kondisiAset').value,
     keterangan: document.getElementById('keteranganAsetForm') ? document.getElementById('keteranganAsetForm').value : ""
   };
+
+  var tb = document.querySelector('#tabelMiniInventori tbody');
+  if(tb) {
+    var c = "badge-glow-success"; 
+    if(data.kondisi.indexOf("Ringan") !== -1) { c = "badge-glow-warning"; }
+    if(data.kondisi.indexOf("Berat") !== -1) { c = "badge-glow-danger"; }
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td class="fw-bold text-start text-dark">' + data.kategori + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td class="fw-bold">' + data.merk + '</td>' +
+      '<td>' + data.sn + '</td>' +
+      '<td>' + data.tahun + '</td>' +
+      '<td><span class="badge ' + c + '">' + data.kondisi + '</span></td>' +
+      '<td class="text-start"><small>' + (data.keterangan || "-") + '</small></td>' +
+      '<td><i class="fa-solid fa-spinner fa-spin"></i></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('kosong')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formInventori', 'Simpan Aset Baru ke Database', 'fa-solid fa-save');
   
   callAPI("simpanInventori", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifInventori', 'formInventori', 'Simpan Aset Baru ke Database', 'fa-solid fa-save'); 
+      onSimpanSukses(notifId); 
       loadInventoriData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Aset Baru ke Database', 'fa-solid fa-save'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Aset Baru ke Database', 'fa-solid fa-save'); 
+      loadInventoriData();
     });
 }
 
 function submitTLD(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitTLD'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifTLD';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1222,21 +1485,44 @@ function submitTLD(e) {
     dosis: document.getElementById('dosisTLD').value, 
     keterangan: document.getElementById('keteranganTLD').value 
   };
+
+  var tb = document.querySelector('#tabelMiniTLD tbody');
+  if(tb) {
+    var c = "badge-glow-success"; 
+    if(data.keterangan.indexOf("Mendekati") !== -1) { c = "badge-glow-warning"; }
+    if(data.keterangan.indexOf("Overexposure") !== -1 || data.keterangan.indexOf("Melebihi") !== -1) { c = "badge-glow-danger"; }
+    
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td class="fw-bold text-start text-dark">' + data.namaPetugas + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td>' + data.periode + '</td>' +
+      '<td>' + data.tahun + '</td>' +
+      '<td class="fw-bold text-primary">' + data.dosis + ' mSv</td>' +
+      '<td><span class="badge ' + c + '">' + data.keterangan + '</span></td>' +
+      '<td><i class="fa-solid fa-spinner fa-spin"></i></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formTLD', 'Simpan Data TLD', 'fa-solid fa-save');
   
   callAPI("simpanTLD", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifTLD', 'formTLD', 'Simpan Data TLD', 'fa-solid fa-save'); 
+      onSimpanSukses(notifId); 
       loadTldData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Data TLD', 'fa-solid fa-save'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Data TLD', 'fa-solid fa-save'); 
+      loadTldData();
     });
 }
 
 function submitMCU(e) {
   e.preventDefault(); 
   var btnId = 'btnSubmitMCU'; 
-  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; 
+  var notifId = 'notifMCU';
+  document.getElementById(btnId).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; 
   document.getElementById(btnId).disabled = true;
   
   var data = { 
@@ -1248,14 +1534,36 @@ function submitMCU(e) {
     hasilMCU: document.getElementById('hasilMCU').value, 
     keterangan: document.getElementById('keteranganMCU').value 
   };
+
+  var tb = document.querySelector('#tabelMiniMCU tbody');
+  if(tb) {
+    var c = "badge-glow-success"; 
+    if(data.hasilMCU.indexOf("Catatan") !== -1) { c = "badge-glow-warning"; }
+    if(data.hasilMCU.indexOf("Unfit") !== -1) { c = "badge-glow-danger"; }
+    
+    var tempRow = '<tr class="table-warning opacity-75">' +
+      '<td class="fw-bold text-start text-dark">' + data.namaPetugas + '</td>' +
+      '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
+      '<td>' + data.tanggalMCU + '</td>' +
+      '<td>' + data.tempatMCU + '</td>' +
+      '<td><span class="badge ' + c + '">' + data.hasilMCU + '</span></td>' +
+      '<td class="text-start"><small>' + (data.keterangan || "-") + '</small></td>' +
+      '<td><i class="fa-solid fa-spinner fa-spin"></i></td>' +
+    '</tr>';
+    if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
+    else tb.insertAdjacentHTML('afterbegin', tempRow);
+  }
+
+  resetFormUI(btnId, notifId, 'formMCU', 'Simpan Riwayat MCU', 'fa-solid fa-save');
   
   callAPI("simpanMCU", { data: data })
     .then(function() { 
-      onSimpanSukses(btnId, 'notifMCU', 'formMCU', 'Simpan Riwayat MCU', 'fa-solid fa-save'); 
+      onSimpanSukses(notifId); 
       loadMcuData(); 
     })
     .catch(function(err) { 
-      onSimpanError(err, btnId, 'Simpan Riwayat MCU', 'fa-solid fa-save'); 
+      onSimpanError(err, btnId, notifId, 'Simpan Riwayat MCU', 'fa-solid fa-save'); 
+      loadMcuData();
     });
 }
 
