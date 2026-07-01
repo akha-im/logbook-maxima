@@ -369,6 +369,8 @@ function prosesLogin(e) {
           
           var filter = document.getElementById('filterDashboard');
           if (filter) { filter.value = currentCabang; filter.disabled = true; }
+          
+          setTimeout(muatDataLatarBelakang, 1000);
         } 
         else if (currentRole === 'TEKNISI') {
           document.getElementById('displayRole').innerHTML = '<i class="fa-solid fa-wrench"></i> Teknisi Logistik';
@@ -383,6 +385,8 @@ function prosesLogin(e) {
           document.getElementById("menuSOP").style.display = "none";
           
           switchTab('status-pengiriman', document.getElementById('menuPengiriman'));
+          
+          setTimeout(muatDataLatarBelakang, 1000);
         } 
         else { 
           document.getElementById('menuDashboard').style.display = 'block';
@@ -392,10 +396,10 @@ function prosesLogin(e) {
           
           var filter = document.getElementById('filterDashboard');
           if (filter) { filter.value = "ALL"; filter.disabled = false; }
+          
+          setTimeout(initDashboardChart, 500); 
+          setTimeout(refreshDashboard, 800);
         }
-        
-        setTimeout(initDashboardChart, 500); 
-        setTimeout(refreshDashboard, 800);
       } else {
         alertBox.innerHTML = response.message; 
         alertBox.style.display = 'block';
