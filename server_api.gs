@@ -609,7 +609,7 @@ function getDashboardData(paramBulan) {
     }
     for (var key in tracker) {
       var item = tracker[key];
-      var pembagi = item.jenis.indexOf("8x10") !== -1 || item.jenis.indexOf("10x14") !== -1 ? 150 : 100;
+      var pembagi = (item.jenis.indexOf("8x10") !== -1 && item.jenis.indexOf("Kertas Photo") === -1) || item.jenis.indexOf("10x14") !== -1 ? 150 : 100;
       var sisaBox = (item.sisaLembar / pembagi).toFixed(1); 
       data.stokRendah.push({
         cabang: item.cabang,
@@ -816,7 +816,7 @@ function getDasborCabangData(cabang, paramBulan) {
     }
     for (var key in tracker) {
       var item = tracker[key];
-      var pembagi = item.jenis.indexOf("8x10") !== -1 || item.jenis.indexOf("10x14") !== -1 ? 150 : 100;
+      var pembagi = (item.jenis.indexOf("8x10") !== -1 && item.jenis.indexOf("Kertas Photo") === -1) || item.jenis.indexOf("10x14") !== -1 ? 150 : 100;
       var sisaBox = (item.sisaLembar / pembagi).toFixed(1); 
       data.stokRendah.push({
         cabang: item.cabang,
