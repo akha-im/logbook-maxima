@@ -447,18 +447,19 @@
                     <table class="table table-sm table-striped table-hover align-middle text-center" id="tabelHarianDash">
                       <thead style="background-color: #99f6e4; color: #115e59;">
                         <tr>
-                          <th>Tanggal</th>
-                          <th>Cabang</th>
-                          <th>Jenis Film</th>
-                          <th>Pasien 1 Lbr</th>
-                          <th>Pasien 2 Lbr</th>
-                          <th>Terpakai</th>
-                          <th>Rijek</th>
-                          <th>Ket. Rijek</th>
+                          <th rowspan="2" class="align-middle">Tanggal</th>
+                          <th rowspan="2" class="align-middle">Cabang</th>
+                          <th colspan="5" class="border-bottom border-success">Pasien (Modalitas)</th>
+                          <th colspan="3" class="border-bottom border-success">Film (Total/Rijek)</th>
+                          <th rowspan="2" class="align-middle">Ket. Rijek</th>
+                        </tr>
+                        <tr class="small">
+                          <th>Th</th><th>Mu</th><th>Pa</th><th>De</th><th>CT</th>
+                          <th class="text-success">Total</th><th class="text-danger">Rijek</th><th>Rincian</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr><td colspan="8" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
+                        <tr><td colspan="11" class="text-center text-muted py-3">Memuat data dari Google Sheets...</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -740,38 +741,85 @@
                     <label class="form-label fw-bold">Tanggal Penggunaan</label>
                     <input type="date" class="form-control" id="tanggalHarian" required>
                   </div>
-                  <div class="col-md-6 mb-2">
-                    <label class="form-label fw-bold">Jenis Film</label>
-                    <select class="form-select" id="jenisFilmHarian" required>
-                      <option value="" disabled selected>-- Pilih jenis film --</option>
-                      <option value="8x10">Film 8 x 10" (20 x 25 cm) (1 box = 150 lembar)</option>
-                      <option value="10x14">Film 10 x 14" (26 x 36 cm) (1 box = 150 lembar)</option>
-                      <option value="14x17">Film 14 x 17" (35 x 43 cm) (1 box = 100 lembar)</option>
-                      <option value="E-Film A4">E-Film / Blue Inkjet A4 (1 box = 100 lembar)</option>
-                      <option value="Kertas Photo 8x10">kertas photo/ 8x10 ( Dental ) (1 box = 100 lembar)</option>
-                    </select>
-                  </div>
                 </div>
 
-                <div class="row mb-3 bg-dark bg-opacity-25 p-3 rounded border border-secondary">
-                  <div class="col-md-6 mb-2">
-                    <label class="form-label fw-bold text-info"><i class="fa-solid fa-user me-1"></i> Pasien (1 Lembar Film)</label>
-                    <input type="number" class="form-control" id="pasien1Lembar" min="0" placeholder="0" required>
+                <div class="row">
+                  <!-- Kolom 1: Tabel Modalitas Pasien -->
+                  <div class="col-md-5 mb-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded border border-primary border-opacity-25 h-100">
+                      <h6 class="fw-bold text-info mb-3"><i class="fa-solid fa-user-injured me-2"></i>Data Pasien (Modalitas)</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-borderless text-white mb-0 align-middle">
+                          <tbody>
+                            <tr>
+                              <td class="fw-bold">Thoraks</td>
+                              <td width="40%"><input type="number" class="form-control form-control-sm text-center" id="pasienThoraks" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Musculo</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="pasienMusculo" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Panoramik</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="pasienPanoramik" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Dental</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="pasienDental" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">CT-Scan</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="pasienCTScan" min="0" placeholder="0" required></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                  <div class="col-md-6 mb-2">
-                    <label class="form-label fw-bold text-info"><i class="fa-solid fa-user-group me-1"></i> Pasien (2 Lembar Film)</label>
-                    <input type="number" class="form-control" id="pasien2Lembar" min="0" placeholder="0" required>
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <div class="col-md-6 mb-2">
-                    <label class="form-label fw-bold text-success">Terpakai Normal (Lembar)</label>
-                    <input type="number" class="form-control" id="terpakaiNormal" min="0" placeholder="0" required>
-                  </div>
-                  <div class="col-md-6 mb-2">
-                    <label class="form-label fw-bold text-danger">Rijek / Rusak (Lembar)</label>
-                    <input type="number" class="form-control" id="rijekRusak" min="0" placeholder="0" required>
+                  
+                  <!-- Kolom 2: Tabel Penggunaan Film -->
+                  <div class="col-md-7 mb-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded border border-primary border-opacity-25 h-100">
+                      <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-film me-2"></i>Penggunaan Film</h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-borderless text-white mb-0 align-middle text-center">
+                          <thead>
+                            <tr class="text-secondary small">
+                              <th class="text-start">Ukuran Film</th>
+                              <th class="text-success" width="25%">Total</th>
+                              <th class="text-danger" width="25%">Rijek</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td class="fw-bold text-start">E-Film A4</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="bfilmA4Total" min="0" placeholder="0" required></td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="bfilmA4Rijek" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold text-start">Fuji 8x10</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji8x10Total" min="0" placeholder="0" required></td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji8x10Rijek" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold text-start">Fuji 10x14</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji10x14Total" min="0" placeholder="0" required></td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji10x14Rijek" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold text-start">K.Photo 8x10</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="kphoto8x10Total" min="0" placeholder="0" required></td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="kphoto8x10Rijek" min="0" placeholder="0" required></td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold text-start">Fuji 14x17</td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji14x17Total" min="0" placeholder="0" required></td>
+                              <td><input type="number" class="form-control form-control-sm text-center" id="fuji14x17Rijek" min="0" placeholder="0" required></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -792,18 +840,19 @@
                 <table class="table table-sm table-hover align-middle text-center" id="tabelMiniHarian">
                   <thead class="table-primary">
                     <tr>
-                      <th>Tanggal</th>
-                      <th>Cabang</th>
-                      <th>Jenis Film</th>
-                      <th>Pasien (1 L)</th>
-                      <th>Pasien (2 L)</th>
-                      <th>Terpakai</th>
-                      <th>Rijek</th>
-                      <th>Keterangan</th>
+                      <th rowspan="2" class="align-middle">Tanggal</th>
+                      <th rowspan="2" class="align-middle">Cabang</th>
+                      <th colspan="5" class="border-bottom border-secondary">Pasien (Modalitas)</th>
+                      <th colspan="3" class="border-bottom border-secondary">Film (Total/Rijek)</th>
+                      <th rowspan="2" class="align-middle">Ket</th>
+                    </tr>
+                    <tr class="small">
+                      <th>Th</th><th>Mu</th><th>Pa</th><th>De</th><th>CT</th>
+                      <th class="text-success">Total</th><th class="text-danger">Rijek</th><th>Rincian</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="8" class="text-center text-muted py-3">Memuat data histori...</td></tr>
+                    <tr><td colspan="11" class="text-center text-muted py-3">Memuat data histori...</td></tr>
                   </tbody>
                 </table>
               </div>

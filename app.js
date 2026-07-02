@@ -250,7 +250,7 @@ function syncLogbookManual() {
 // [KONFIGURASI] API URL GOOGLE APPS SCRIPT WEB APP
 // =========================================================================
 // MASUKKAN URL HASIL DEPLOY APPS SCRIPT (WEB APP) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbxOS-G_U8dlP0r6eKSjkHmp0ldoZHxXG9kX7OMR0BQ8Zj7Y9TZ2LG8EDwqrFwgQ5-bL/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzzP0QFObdfZwHjqirzKns7tUqCoOIpaoybeJkhXqnLGBq-lXOLtx5C63_UH8jsn0XG/exec";
 
 // =========================================================================
 // [LOGIKA-100] VARIABEL GLOBAL & INISIALISASI (ONLOAD)
@@ -493,17 +493,28 @@ function initDashboardChart() {
       datasets: [
         { 
           label: 'Total Pasien', 
-          backgroundColor: '#6366f1', 
-          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(139, 92, 246, 0.85)', 
+          borderColor: '#7c3aed',
           borderWidth: 1,
+          borderRadius: 4,
           data: masterData.pasien 
         }, 
         { 
           label: 'Pemakaian Film (Lbr)', 
-          backgroundColor: '#0ea5e9', 
-          borderColor: '#0284c7',
+          backgroundColor: 'rgba(59, 130, 246, 0.85)', 
+          borderColor: '#2563eb',
           borderWidth: 1,
+          borderRadius: 4,
           data: masterData.film 
+        },
+        { 
+          label: 'Film Rijek (Lbr)', 
+          backgroundColor: 'rgba(244, 63, 94, 0.85)', 
+          borderColor: '#e11d48',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.6,
+          data: masterData.rijek 
         }
       ] 
     },
@@ -539,6 +550,7 @@ function refreshDashboard() {
       masterData.labels = (response.chart.labels || masterData.labels).map(function(l) { return l === "MXM-GTL" ? "MXM-GTO" : l; });
       masterData.pasien = response.chart.pasien;
       masterData.film = response.chart.film;
+      masterData.rijek = response.chart.rijek;
       masterData.totalRijek = response.ringkasan.rijek || 0;
       if (response.rejectDetail) masterData.rejectDetail = response.rejectDetail;
       masterData.totalOrder = response.ringkasan.order;
@@ -703,30 +715,42 @@ function initDasborCabangChart(chartData) {
       datasets: [
         { 
           label: 'Pasien (Ekspose)', 
-          backgroundColor: 'rgba(34, 197, 94, 0.1)', 
-          borderColor: '#22c55e', // Green
-          borderWidth: 1, // Garis tipis
-          tension: 0.4, // Sedikit renggang
+          backgroundColor: 'rgba(139, 92, 246, 0.1)', 
+          borderColor: '#8b5cf6', 
+          borderWidth: 2, 
+          tension: 0.4, 
+          pointRadius: 4,
+          pointBackgroundColor: '#8b5cf6',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
           fill: false,
           data: chartData.pasien 
         }, 
         { 
           label: 'Pemakaian Film (Lbr)', 
-          backgroundColor: 'rgba(30, 58, 138, 0.1)', 
-          borderColor: '#1e3a8a', // Dark Blue
+          backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+          borderColor: '#3b82f6', 
           borderWidth: 2,
           borderDash: [5, 5],
           tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#3b82f6',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
           fill: false,
           data: chartData.film 
         },
         { 
           label: 'Film Rijek (Lbr)', 
-          backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-          borderColor: '#ef4444', // Red
+          backgroundColor: 'rgba(244, 63, 94, 0.1)', 
+          borderColor: '#f43f5e', 
           borderWidth: 2,
           borderDash: [2, 2],
-          tension: 0.2, // Paling melengkung patah agar tidak tertumpuk
+          tension: 0.2, 
+          pointRadius: 4,
+          pointBackgroundColor: '#f43f5e',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
           fill: false,
           data: chartData.rijek 
         }
@@ -786,6 +810,9 @@ function updateDashboardView() {
     chartInstance.data.labels = (filter === 'ALL') ? masterData.labels : [masterData.labels[idx]]; 
     chartInstance.data.datasets[0].data = (filter === 'ALL') ? masterData.pasien : [masterData.pasien[idx]]; 
     chartInstance.data.datasets[1].data = (filter === 'ALL') ? masterData.film : [masterData.film[idx]]; 
+    if(chartInstance.data.datasets[2]) {
+      chartInstance.data.datasets[2].data = (filter === 'ALL') ? masterData.rijek : [masterData.rijek[idx]];
+    }
     chartInstance.update(); 
   }
 
@@ -841,12 +868,14 @@ function renderTabelDashboard(filter) {
           tbodyHarian.innerHTML += '<tr>' +
             '<td>' + row.tanggal + '</td>' +
             '<td class="text-center">' + getBadgeCabang(row.cabang) + '</td>' +
-            '<td>' + row.jenisFilm + '</td>' +
-            '<td>' + row.p1 + '</td>' +
-            '<td>' + row.p2 + '</td>' +
-            '<td class="fw-bold text-success">' + row.terpakai + '</td>' +
-            '<td class="fw-bold text-danger">' + row.rijek + '</td>' +
-            '<td class="text-start"><small>' + row.ket + '</small></td>' +
+            '<td>' + (row.pasienThoraks || 0) + '</td>' +
+            '<td>' + (row.pasienMusculo || 0) + '</td>' +
+            '<td>' + (row.pasienPanoramik || 0) + '</td>' +
+            '<td>' + (row.pasienDental || 0) + '</td>' +
+            '<td>' + (row.pasienCTScan || 0) + '</td>' +
+            '<td class="fw-bold text-success">' + (row.totalFilm || 0) + '</td>' +
+            '<td class="fw-bold text-danger">' + (row.totalRijek || 0) + '</td>' +
+            '<td class="text-start"><small>' + (row.keterangan || "-") + '</small></td>' +
           '</tr>';
         }
       });
@@ -1201,25 +1230,39 @@ function submitHarian(e) {
   var data = { 
     cabang: currentCabang, 
     tanggal: document.getElementById('tanggalHarian').value, 
-    jenisFilm: document.getElementById('jenisFilmHarian').value, 
-    pasien1: document.getElementById('pasien1Lembar').value, 
-    pasien2: document.getElementById('pasien2Lembar').value, 
-    terpakaiNormal: document.getElementById('terpakaiNormal').value, 
-    rijekRusak: document.getElementById('rijekRusak').value, 
+    pasienThoraks: document.getElementById('pasienThoraks').value, 
+    pasienMusculo: document.getElementById('pasienMusculo').value, 
+    pasienPanoramik: document.getElementById('pasienPanoramik').value, 
+    pasienDental: document.getElementById('pasienDental').value, 
+    pasienCTScan: document.getElementById('pasienCTScan').value, 
+    bfilmA4Total: document.getElementById('bfilmA4Total').value, 
+    bfilmA4Rijek: document.getElementById('bfilmA4Rijek').value, 
+    fuji8x10Total: document.getElementById('fuji8x10Total').value, 
+    fuji8x10Rijek: document.getElementById('fuji8x10Rijek').value, 
+    fuji10x14Total: document.getElementById('fuji10x14Total').value, 
+    fuji10x14Rijek: document.getElementById('fuji10x14Rijek').value, 
+    kphoto8x10Total: document.getElementById('kphoto8x10Total').value, 
+    kphoto8x10Rijek: document.getElementById('kphoto8x10Rijek').value, 
+    fuji14x17Total: document.getElementById('fuji14x17Total').value, 
+    fuji14x17Rijek: document.getElementById('fuji14x17Rijek').value, 
     keterangan: document.getElementById('keteranganRijek').value 
   };
 
   // --- OPTIMISTIC UI ---
   var tb = document.querySelector('#tabelMiniHarian tbody');
   if(tb) {
+    var totalFilm = (Number(data.bfilmA4Total)||0) + (Number(data.fuji8x10Total)||0) + (Number(data.fuji10x14Total)||0) + (Number(data.kphoto8x10Total)||0) + (Number(data.fuji14x17Total)||0);
+    var totalRijek = (Number(data.bfilmA4Rijek)||0) + (Number(data.fuji8x10Rijek)||0) + (Number(data.fuji10x14Rijek)||0) + (Number(data.kphoto8x10Rijek)||0) + (Number(data.fuji14x17Rijek)||0);
     var tempRow = '<tr class="table-warning opacity-75">' +
       '<td>' + data.tanggal + '</td>' +
       '<td class="text-center">' + getBadgeCabang(data.cabang) + '</td>' +
-      '<td class="fw-bold">' + data.jenisFilm + '</td>' +
-      '<td>' + (data.pasien1 || 0) + '</td>' +
-      '<td>' + (data.pasien2 || 0) + '</td>' +
-      '<td class="text-success fw-bold">' + (data.terpakaiNormal || 0) + '</td>' +
-      '<td class="text-danger fw-bold">' + (data.rijekRusak || 0) + '</td>' +
+      '<td>' + (data.pasienThoraks || 0) + '</td>' +
+      '<td>' + (data.pasienMusculo || 0) + '</td>' +
+      '<td>' + (data.pasienPanoramik || 0) + '</td>' +
+      '<td>' + (data.pasienDental || 0) + '</td>' +
+      '<td>' + (data.pasienCTScan || 0) + '</td>' +
+      '<td class="text-success fw-bold">' + totalFilm + '</td>' +
+      '<td class="text-danger fw-bold">' + totalRijek + '</td>' +
       '<td class="text-start"><small>' + (data.keterangan || "-") + ' <i class="fa-solid fa-spinner fa-spin ms-1"></i></small></td>' +
     '</tr>';
     if(tb.innerHTML.includes('Belum ada')) tb.innerHTML = tempRow;
@@ -1593,12 +1636,14 @@ function loadHarianData() {
           tb.innerHTML += '<tr>' +
             '<td>' + r.tanggal + '</td>' +
             '<td class="text-center">' + getBadgeCabang(r.cabang) + '</td>' +
-            '<td class="fw-bold">' + r.jenis + '</td>' +
-            '<td>' + r.p1 + '</td>' +
-            '<td>' + r.p2 + '</td>' +
-            '<td class="text-success fw-bold">' + r.terpakai + '</td>' +
-            '<td class="text-danger fw-bold">' + r.rijek + '</td>' +
-            '<td class="text-start"><small>' + r.ket + '</small></td>' +
+            '<td>' + (r.pasienThoraks || 0) + '</td>' +
+            '<td>' + (r.pasienMusculo || 0) + '</td>' +
+            '<td>' + (r.pasienPanoramik || 0) + '</td>' +
+            '<td>' + (r.pasienDental || 0) + '</td>' +
+            '<td>' + (r.pasienCTScan || 0) + '</td>' +
+            '<td class="text-success fw-bold">' + (r.totalFilm || 0) + '</td>' +
+            '<td class="text-danger fw-bold">' + (r.totalRijek || 0) + '</td>' +
+            '<td class="text-start"><small>' + (r.keterangan || "-") + '</small></td>' +
           '</tr>'; 
         });
       }

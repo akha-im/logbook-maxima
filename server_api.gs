@@ -235,11 +235,21 @@ function simpanHarian(data) {
     new Date(), 
     data.tanggal, 
     data.cabang, 
-    data.jenisFilm, 
-    Number(data.pasien1) || 0, 
-    Number(data.pasien2) || 0, 
-    Number(data.terpakaiNormal) || 0, 
-    Number(data.rijekRusak) || 0, 
+    Number(data.pasienThoraks) || 0, 
+    Number(data.pasienMusculo) || 0, 
+    Number(data.pasienPanoramik) || 0, 
+    Number(data.pasienDental) || 0, 
+    Number(data.pasienCTScan) || 0, 
+    Number(data.bfilmA4Total) || 0, 
+    Number(data.bfilmA4Rijek) || 0, 
+    Number(data.fuji8x10Total) || 0, 
+    Number(data.fuji8x10Rijek) || 0, 
+    Number(data.fuji10x14Total) || 0, 
+    Number(data.fuji10x14Rijek) || 0, 
+    Number(data.kphoto8x10Total) || 0, 
+    Number(data.kphoto8x10Rijek) || 0, 
+    Number(data.fuji14x17Total) || 0, 
+    Number(data.fuji14x17Rijek) || 0, 
     data.keterangan || "-"
   ]);
   return true;
@@ -436,7 +446,7 @@ function getDashboardData(paramBulan) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = {
     ringkasan: { pasien: 0, film: 0, rijek: 0, order: 0, cr: 0 },
-    chart: { labels: [], pasien: [], film: [] },
+    chart: { labels: [], pasien: [], film: [], rijek: [] },
     cabangList: ['MXM-KDI', 'MXM-MKS', 'MXM-PLU', 'MXM-GTO', 'MXM-MND', 'MXM-LWK', 'MXM-BHD', 'MXM-BUB', 'MXM-BJM'],
     tabelData: { harian: [], order: [], inventori: [], perijinan: [], logbook: [] },
     stokRendah: [],
@@ -447,6 +457,7 @@ function getDashboardData(paramBulan) {
   data.chart.labels = data.cabangList;
   data.chart.pasien = new Array(9).fill(0);
   data.chart.film = new Array(9).fill(0);
+  data.chart.rijek = new Array(9).fill(0);
 
   var currentMonth = new Date().getMonth();
   var currentYear = new Date().getFullYear();
@@ -465,45 +476,69 @@ function getDashboardData(paramBulan) {
         
         var tglAsli = new Date(row[1]);
         if(!isNaN(tglAsli.getTime()) && tglAsli.getMonth() === currentMonth && tglAsli.getFullYear() === currentYear) {
-          var p1 = Number(row[4]) || 0;
-          var p2 = Number(row[5]) || 0;
-          var terpakai = Number(row[6]) || 0;
-          var rijek = Number(row[7]) || 0;
+          var pThoraks = Number(row[3]) || 0;
+          var pMusculo = Number(row[4]) || 0;
+          var pPanoramik = Number(row[5]) || 0;
+          var pDental = Number(row[6]) || 0;
+          var pCTScan = Number(row[7]) || 0;
+          var totalPasien = pThoraks + pMusculo + pPanoramik + pDental + pCTScan;
+
+          var fList = [
+            { nama: "E-Film A4", total: Number(row[8]) || 0, rijek: Number(row[9]) || 0 },
+            { nama: "Fuji 8x10", total: Number(row[10]) || 0, rijek: Number(row[11]) || 0 },
+            { nama: "Fuji 10x14", total: Number(row[12]) || 0, rijek: Number(row[13]) || 0 },
+            { nama: "Kertas Photo 8x10", total: Number(row[14]) || 0, rijek: Number(row[15]) || 0 },
+            { nama: "Fuji 14x17", total: Number(row[16]) || 0, rijek: Number(row[17]) || 0 }
+          ];
+
+          var totalTerpakai = 0;
+          var totalRijek = 0;
           var cabang = String(row[2] || "").trim();
-          var jenisFilm = String(row[3] || "").trim();
-          
-          data.ringkasan.pasien += (p1 + p2);
-          data.ringkasan.film += terpakai;
-          data.ringkasan.rijek += rijek;
-          
-          if(rijek > 0) {
-            if(!data.rejectDetail.byFilm[jenisFilm]) data.rejectDetail.byFilm[jenisFilm] = 0;
-            data.rejectDetail.byFilm[jenisFilm] += rijek;
+
+          data.ringkasan.pasien += totalPasien;
+
+          for (var f = 0; f < fList.length; f++) {
+            totalTerpakai += fList[f].total;
+            totalRijek += fList[f].rijek;
             
-            if(!data.rejectDetail.byCabang[cabang]) data.rejectDetail.byCabang[cabang] = 0;
-            data.rejectDetail.byCabang[cabang] += rijek;
-            
-            if(!data.rejectDetail.cross[cabang]) data.rejectDetail.cross[cabang] = {};
-            if(!data.rejectDetail.cross[cabang][jenisFilm]) data.rejectDetail.cross[cabang][jenisFilm] = 0;
-            data.rejectDetail.cross[cabang][jenisFilm] += rijek;
+            if (fList[f].rijek > 0) {
+              var jenisFilm = fList[f].nama;
+              if(!data.rejectDetail.byFilm[jenisFilm]) data.rejectDetail.byFilm[jenisFilm] = 0;
+              data.rejectDetail.byFilm[jenisFilm] += fList[f].rijek;
+              
+              if(!data.rejectDetail.byCabang[cabang]) data.rejectDetail.byCabang[cabang] = 0;
+              data.rejectDetail.byCabang[cabang] += fList[f].rijek;
+              
+              if(!data.rejectDetail.cross[cabang]) data.rejectDetail.cross[cabang] = {};
+              if(!data.rejectDetail.cross[cabang][jenisFilm]) data.rejectDetail.cross[cabang][jenisFilm] = 0;
+              data.rejectDetail.cross[cabang][jenisFilm] += fList[f].rijek;
+            }
           }
+
+          data.ringkasan.film += totalTerpakai;
+          data.ringkasan.rijek += totalRijek;
 
           var idx = data.cabangList.indexOf(cabang);
           if(idx !== -1) {
-            data.chart.pasien[idx] += (p1 + p2);
-            data.chart.film[idx] += terpakai;
+            data.chart.pasien[idx] += totalPasien;
+            data.chart.film[idx] += totalTerpakai;
+            data.chart.rijek[idx] += totalRijek;
           }
         }
         if(data.tabelData.harian.length < 30) {
+          var tFilm = (Number(row[8])||0) + (Number(row[10])||0) + (Number(row[12])||0) + (Number(row[14])||0) + (Number(row[16])||0);
+          var tRijek = (Number(row[9])||0) + (Number(row[11])||0) + (Number(row[13])||0) + (Number(row[15])||0) + (Number(row[17])||0);
           data.tabelData.harian.push({
             tanggal: formatTanggalAman(row[1]), 
             cabang: row[2] || "-", 
-            jenisFilm: row[3] || "-",
-            p1: row[4] || 0, 
-            p2: row[5] || 0, 
-            terpakai: row[6] || 0, 
-            rijek: row[7] || 0, 
-            ket: row[8] || "-"
+            pasienThoraks: row[3] || 0,
+            pasienMusculo: row[4] || 0,
+            pasienPanoramik: row[5] || 0,
+            pasienDental: row[6] || 0,
+            pasienCTScan: row[7] || 0,
+            totalFilm: tFilm,
+            totalRijek: tRijek,
+            ket: row[18] || "-"
           });
         }
       }
@@ -752,16 +787,15 @@ function getDasborCabangData(cabang, paramBulan) {
         
         var tglAsli = new Date(row[1]);
         if(!isNaN(tglAsli.getTime()) && tglAsli.getMonth() === currentMonth && tglAsli.getFullYear() === currentYear) {
-          var p1 = Number(row[4]) || 0;
-          var p2 = Number(row[5]) || 0;
-          var terpakai = Number(row[6]) || 0;
-          var rijek = Number(row[7]) || 0;
+          var tPasien = (Number(row[3])||0) + (Number(row[4])||0) + (Number(row[5])||0) + (Number(row[6])||0) + (Number(row[7])||0);
+          var tTerpakai = (Number(row[8])||0) + (Number(row[10])||0) + (Number(row[12])||0) + (Number(row[14])||0) + (Number(row[16])||0);
+          var tRijek = (Number(row[9])||0) + (Number(row[11])||0) + (Number(row[13])||0) + (Number(row[15])||0) + (Number(row[17])||0);
           
           var day = tglAsli.getDate();
           var idx = day - 1;
-          data.chartHarian.pasien[idx] += (p1 + p2);
-          data.chartHarian.film[idx] += terpakai;
-          data.chartHarian.rijek[idx] += rijek;
+          data.chartHarian.pasien[idx] += tPasien;
+          data.chartHarian.film[idx] += tTerpakai;
+          data.chartHarian.rijek[idx] += tRijek;
         }
       }
     }
@@ -857,15 +891,19 @@ function getHarianMiniData(cabangFilter) {
     var res = [];
     for (var i = data.length - 1; i > 0; i--) {
       if (cabangFilter === "ALL" || data[i][2] === cabangFilter) {
+        var tFilm = (Number(data[i][8])||0) + (Number(data[i][10])||0) + (Number(data[i][12])||0) + (Number(data[i][14])||0) + (Number(data[i][16])||0);
+        var tRijek = (Number(data[i][9])||0) + (Number(data[i][11])||0) + (Number(data[i][13])||0) + (Number(data[i][15])||0) + (Number(data[i][17])||0);
         res.push({ 
           tanggal: formatTanggalAman(data[i][1]), 
           cabang: data[i][2], 
-          jenis: data[i][3], 
-          p1: data[i][4], 
-          p2: data[i][5], 
-          terpakai: data[i][6], 
-          rijek: data[i][7], 
-          ket: data[i][8] 
+          pasienThoraks: data[i][3] || 0,
+          pasienMusculo: data[i][4] || 0,
+          pasienPanoramik: data[i][5] || 0,
+          pasienDental: data[i][6] || 0,
+          pasienCTScan: data[i][7] || 0,
+          totalFilm: tFilm, 
+          totalRijek: tRijek, 
+          keterangan: data[i][18] || "-"
         });
       }
       if (res.length >= 20) break;
@@ -1170,8 +1208,11 @@ function getAnalyticsBIData() {
   try {
     var valHarian = getSheet("Log_Harian_Film").getDataRange().getValues();
     for(var i = 1; i < valHarian.length; i++) {
-      res.efisiensi.normal += Number(valHarian[i][6]) || 0; 
-      res.efisiensi.rijek += Number(valHarian[i][7]) || 0;  
+      var row = valHarian[i];
+      var tFilm = (Number(row[8])||0) + (Number(row[10])||0) + (Number(row[12])||0) + (Number(row[14])||0) + (Number(row[16])||0);
+      var tRijek = (Number(row[9])||0) + (Number(row[11])||0) + (Number(row[13])||0) + (Number(row[15])||0) + (Number(row[17])||0);
+      res.efisiensi.normal += tFilm; 
+      res.efisiensi.rijek += tRijek;  
     }
   } catch(e){}
 
