@@ -861,7 +861,7 @@ function renderTabelDashboard(filter) {
     var dataHarian = masterData.tabelData.harian;
     
     if (!dataHarian || dataHarian.length === 0) {
-      tbodyHarian.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Tidak ada data laporan harian.</td></tr>';
+      tbodyHarian.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data laporan harian.</td></tr>';
     } else {
       dataHarian.forEach(function(row) {
         if(filter === 'ALL' || row.cabang === filter) {
@@ -1624,12 +1624,12 @@ function getCabFilter() {
 function loadHarianData() {
   var tb = document.querySelector('#tabelMiniHarian tbody'); 
   if(!tb) return;
-  tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
+  tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Menarik data...</td></tr>';
   
   callAPI("GET", { action: "getHarian", cabang: getCabFilter() })
     .then(function(data) {
       if (data.length === 0) {
-        tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada histori harian.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Belum ada histori harian.</td></tr>';
       } else {
         tb.innerHTML = '';
         data.forEach(function(r) { 
@@ -1648,7 +1648,7 @@ function loadHarianData() {
         });
       }
     })
-    .catch(function(e) { tb.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
+    .catch(function(e) { tb.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Gagal memuat data.</td></tr>'; });
 }
 
 function loadLogbookPasienData() {
